@@ -1,0 +1,25 @@
+# IntelliJ files
+*.iml
+/local.properties
+/.idea/workspace.xml
+/app/.idea/workspace.xml
+**/.idea/misc.xml
+
+# Gradle
+.gradle
+/.idea/libraries/
+/app/.idea/libraries/
+
+# Generated build files
+/build
+/app/build/
+
+# generated APKs for PlayStore
+/signed-apk/
+
+# Mac OS files
+.DS_Store
+
+
+# Fabric
+/app/fabric.properties
