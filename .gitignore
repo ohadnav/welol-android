@@ -4,6 +4,7 @@
 /.idea/workspace.xml
 /app/.idea/workspace.xml
 **/.idea/misc.xml
+app/libs/
 
 # Gradle
 .gradle
@@ -23,3 +24,7 @@
 
 # Fabric
 /app/fabric.properties
+
+# Crashlytics
+app/src/main/assets/crashlytics-build.properties
+app/src/main/res/values/com_crashlytics_export_strings.xml
