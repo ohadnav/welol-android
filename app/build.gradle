@@ -1,28 +1,95 @@
-apply plugin: 'com.android.application'
+buildscript {
+  repositories {
+    maven { url 'https://maven.fabric.io/public' }
+  }
+
+  dependencies {
+    //noinspection GradleDynamicVersion
+    classpath 'io.fabric.tools:gradle:1.+'
+  }
+}
+apply plugin: "com.android.application"
+apply plugin: 'io.fabric'
+
+repositories {
+  maven { url 'https://maven.fabric.io/public' }
+}
 
 android {
-    compileSdkVersion 26
-    defaultConfig {
-        applicationId "com.welol.android"
-        minSdkVersion 23
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+  defaultConfig {
+    applicationId "com.welol.android"
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+    versionCode buildVersionCode()
+    versionName version
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    multiDexEnabled true
+  }
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
+  dataBinding {
+    enabled = true
+  }
+  buildTypes {
+    debug {
+      applicationIdSuffix ".debug"
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+    release {
+      minifyEnabled true
+      zipAlignEnabled true
+      proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
     }
+    // For beta testing in the PlayStore.
+    beta {
+      initWith release
+      versionNameSuffix "-beta"
+    }
+  }
+  sourceSets {
+    main { assets.srcDirs = ['src/main/assets', 'src/main/assets/fonts'] }
+    debug { res.srcDirs = ['src/debug/res', 'src/debug/res/raw'] }
+  }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+  compile fileTree(include: ["*.jar"], dir: "libs")
+  compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
+  compile "com.android.support:support-v4:$rootProject.supportLibraryVersion"
+  compile("com.android.support.constraint:constraint-layout:$rootProject.constraintLayoutVersion", {
+    exclude group: "com.android.support", module: "support-annotations"
+  })
+  compile "com.google.code.findbugs:jsr305:$rootProject.findBugsVersion"
+  compile "com.google.guava:guava:$rootProject.guavaVersion"
+  compile("eu.inloop:androidviewmodel:$rootProject.inloopMvvmVersion", {
+    exclude group: "com.android.support"
+  })
+  compile("com.crashlytics.sdk.android:crashlytics:2.6.8@aar") {
+    transitive = true
+  }
+  compile "com.jakewharton:butterknife:$rootProject.butterKnifeVersion"
+  annotationProcessor "com.jakewharton:butterknife-compiler:$rootProject.butterKnifeVersion"
+  testCompile "junit:junit:$rootProject.junitVersion"
+  testCompile "org.awaitility:awaitility:$rootProject.awaitilityVersion"
+  testCompile "org.mockito:mockito-core:$rootProject.mockitoVersion"
+  androidTestCompile "org.mockito:mockito-android:$rootProject.mockitoAndroidVersion"
+  androidTestCompile "com.android.support.test.uiautomator:uiautomator-v18:$rootProject.uiAutomatorVersion"
+  androidTestCompile "org.awaitility:awaitility:$rootProject.awaitilityVersion"
+  androidTestCompile("com.android.support.test.espresso:espresso-core:$rootProject.espressoVersion",
+      {
+        exclude group: "com.android.support", module: "support-annotations"
+        exclude group: "junit", module: "junit"
+        exclude group: "com.google.code.findbugs", module: "jsr305"
+      })
+  androidTestCompile(
+      "com.android.support.test.espresso:espresso-intents:$rootProject.espressoVersion", {
+    exclude group: "com.android.support", module: "support-annotations"
+    exclude group: "com.google.code.findbugs", module: "jsr305"
+  })
+
+  compile "com.affectiva.android:affdexsdk:$rootProject.affectivaVersion"
 }
+
+apply from: "../artifacts.gradle"
