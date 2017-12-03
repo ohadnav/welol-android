@@ -4,7 +4,7 @@ import android.support.test.rule.ActivityTestRule;
 import com.welol.android.app.App;
 import com.welol.android.app.permissions.FakePermissionsManager;
 import com.welol.android.empathy.FakeReactionDetectionManager;
-import com.welol.android.view.activity.LaunchActivity;
+import com.welol.android.view.activity.MainActivity;
 import com.welol.android.view.activity.TestActivity;
 import org.awaitility.Awaitility;
 import org.awaitility.Duration;
@@ -23,8 +23,8 @@ import org.junit.Rule;
    */
   public static Duration TIMEOUT =
       TestUtil.isDebugging() ? Duration.ONE_MINUTE : Duration.TWO_SECONDS;
-  @Rule public ActivityTestRule<LaunchActivity> mMainActivityRule =
-      new ActivityTestRule<>(LaunchActivity.class, true, false);
+  @Rule public ActivityTestRule<MainActivity> mMainActivityRule =
+      new ActivityTestRule<>(MainActivity.class, true, false);
   @Rule public ActivityTestRule<TestActivity> mTestActivityRule =
       new ActivityTestRule<>(TestActivity.class, true, false);
   protected FakePermissionsManager mFakePermissionsManager;

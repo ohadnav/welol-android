@@ -12,7 +12,7 @@
   <android.support.constraint.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      tools:context="com.welol.android.view.activity.LaunchActivity"
+      tools:context="com.welol.android.view.activity.MainActivity"
       >
 
   </android.support.constraint.ConstraintLayout>

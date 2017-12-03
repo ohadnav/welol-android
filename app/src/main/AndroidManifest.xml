@@ -36,7 +36,7 @@
       </intent-filter>
     </activity>
 
-    <activity android:name=".view.activity.LaunchActivity">
+    <activity android:name=".view.activity.MainActivity">
     </activity>
     <activity android:name=".view.activity.AskForPermissionActivity">
     </activity>
