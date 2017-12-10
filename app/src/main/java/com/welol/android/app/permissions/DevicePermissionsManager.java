@@ -21,11 +21,12 @@ public class DevicePermissionsManager implements PermissionsManager {
         == PackageManager.PERMISSION_GRANTED;
   }
 
-  @Override public void requestIfNeeded(Activity activity, Permission permission) {
+  @Override public boolean requestIfNeeded(Activity activity, Permission permission) {
     // If permission was already granted, then return.
-    if (isPermissionGranted(permission)) return;
+    if (isPermissionGranted(permission)) return true;
     // Request permission.
     ActivityCompat.requestPermissions(activity, new String[] { permission.getManifest() },
         permission.getRequestCode());
+    return false;
   }
 }

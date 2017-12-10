@@ -1,6 +1,6 @@
 package com.welol.android.empathy;
 
-import com.welol.android.view.activity.BaseActivity;
+import android.content.Context;
 
 /**
  * Proudly created by ohad on 08/06/2017 for TrueThat.
@@ -10,9 +10,9 @@ public interface ReactionDetectionManager {
    * Initiates an emotional reaction detection task, that publishes detection reaction to
    * subscribers.
    *
-   * @param activity to ask for permissions from.
+   * @param context for the detection thread.
    */
-  void start(BaseActivity activity);
+  void start(Context context);
 
   /**
    * Subscribes a listener so that detected reactions will be published to it. Multiple subscribers
@@ -34,4 +34,9 @@ public interface ReactionDetectionManager {
    * Stops the current detection task.
    */
   void stop();
+
+  /**
+   * @return whether the user looks at the phone.
+   */
+  boolean hasAttention();
 }

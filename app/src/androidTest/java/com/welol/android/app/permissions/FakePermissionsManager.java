@@ -47,7 +47,11 @@ import java.util.Map;
    * <li>{@code permission} is forbidden or {@code mInvokeRequestCallback} is true.</li>
    * </ul>
    */
-  @Override public void requestIfNeeded(@Nullable Activity activity, Permission permission) {
+  @Override public boolean requestIfNeeded(@Nullable Activity activity, Permission permission) {
+    // If permission is already granted, then return.
+    if (mPermissionToState.get(permission) == PermissionState.GRANTED) {
+      return true;
+    }
     boolean activityNotNull = activity != null;
     boolean permissionNotAlreadyGranted =
         mPermissionToState.get(permission) != PermissionState.GRANTED;
@@ -77,6 +81,7 @@ import java.util.Map;
                   : PackageManager.PERMISSION_DENIED
           });
     }
+    return false;
   }
 
   public void forbid(Permission permission) {

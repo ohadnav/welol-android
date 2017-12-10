@@ -28,8 +28,7 @@ import com.welol.android.viewmodel.viewinterface.BaseListener;
  */
 
 public abstract class BaseFragment<ViewInterface extends BaseFragmentViewInterface, ViewModel extends BaseFragmentViewModel<ViewInterface>, DataBinding extends ViewDataBinding>
-    extends Fragment
-    implements BaseFragmentViewInterface, BaseListener, View.OnAttachStateChangeListener {
+    extends Fragment implements BaseFragmentViewInterface, BaseListener {
   /**
    * {@link BaseViewModel} manager of this fragment.
    */
@@ -146,9 +145,6 @@ public abstract class BaseFragment<ViewInterface extends BaseFragmentViewInterfa
     setModelView((ViewInterface) this);
     // Binds views with butterknife.
     mViewUnbinder = ButterKnife.bind(this, rootView);
-    // Sets up context
-    mViewModelHelper.getViewModel().setContext(this.getActivity());
-    rootView.addOnAttachStateChangeListener(this);
     return rootView;
   }
 

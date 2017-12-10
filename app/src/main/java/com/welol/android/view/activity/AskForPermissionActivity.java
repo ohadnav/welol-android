@@ -45,10 +45,10 @@ public class AskForPermissionActivity extends
 
   @Override public void onResume() {
     super.onResume();
-    // Obtaining the permission to which we want to ask for permission.
+    // Obtaining the permission.
     Bundle extras = getIntent().getExtras();
-    if (extras == null) {
-      mPermission = (Permission) getIntent().getExtras().get(EXTRA_PERMISSION);
+    if (extras != null) {
+      mPermission = (Permission) extras.get(EXTRA_PERMISSION);
     }
     if (mPermission == null) {
       throw new AssertionError("Permission must be set, but is null.");

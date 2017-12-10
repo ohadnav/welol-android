@@ -10,17 +10,10 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 import com.affectiva.android.affdex.sdk.Frame;
-import com.affectiva.android.affdex.sdk.detector.Detector;
-import com.affectiva.android.affdex.sdk.detector.Face;
 import com.affectiva.android.affdex.sdk.detector.FrameDetector;
 import com.crashlytics.android.Crashlytics;
 import com.welol.android.BuildConfig;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Proudly created by ohad on 31/07/2017 for TrueThat.
@@ -28,8 +21,6 @@ import java.util.Map;
  * A handler for the DetectionThread.
  */
 public class DetectionHandler extends Handler {
-  private static final double SUM_THRESHOLD = 200;
-  private static final double ITERATION_THRESHOLD = 40;
   //Incoming message codes
   private static final int START = 0;
   private static final int STOP = 1;
@@ -37,13 +28,11 @@ public class DetectionHandler extends Handler {
   private CameraHelper mCameraHelper;
   private FrameDetector mFrameDetector;
   private SurfaceTexture mSurfaceTexture;
-  private ReactionDetectionListener mDetectionListener;
-  private Map<AffectivaEmotion, Float> emotionToLikelihood;
 
-  DetectionHandler(Context context, HandlerThread detectionThread) {
+  DetectionHandler(Context context, HandlerThread detectionThread,
+      BaseReactionDetectionManager reactionDetectionManager) {
     // note: getLooper will block until the the thread's looper has been prepared
     super(detectionThread.getLooper());
-    resetLikelihoodMap();
     Display display =
         ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
     mCameraHelper = new CameraHelper(context, display, new DetectionHandler.CameraHelperListener());
@@ -53,68 +42,8 @@ public class DetectionHandler extends Handler {
     // listen for face events and request valence scores.
     mFrameDetector = new FrameDetector(context);
     mFrameDetector.setDetectAllEmotions(true);
-    mFrameDetector.setFaceListener(new Detector.FaceListener() {
-      @Override public void onFaceDetectionStarted() {
-        resetLikelihoodMap();
-        Log.d(TAG, "onFaceDetectionStarted.");
-      }
-
-      @Override public void onFaceDetectionStopped() {
-        resetLikelihoodMap();
-        Log.d(TAG, "onFaceDetectionStopped");
-      }
-    });
-    mFrameDetector.setImageListener(new Detector.ImageListener() {
-      @Override public void onImageResults(List<Face> faces, Frame frame, float v) {
-        for (final Face face : faces) {
-          Map<AffectivaEmotion, Float> currentLikelihood;
-          currentLikelihood = new HashMap<>();
-          currentLikelihood.put(AffectivaEmotion.JOY, face.emotions.getJoy());
-          currentLikelihood.put(AffectivaEmotion.SURPRISE, face.emotions.getSurprise());
-          currentLikelihood.put(AffectivaEmotion.ANGER, face.emotions.getAnger());
-          // Fear is harder to detect, and so it is amplified
-          currentLikelihood.put(AffectivaEmotion.FEAR, face.emotions.getFear() * 3);
-          // Negative emotions are too easy to detect, and so they are decreased
-          currentLikelihood.put(AffectivaEmotion.DISGUST, face.emotions.getDisgust() / 2);
-          currentLikelihood.put(AffectivaEmotion.SADNESS, face.emotions.getSadness() / 2);
-          for (Map.Entry<AffectivaEmotion, Float> likelihoodEntry : currentLikelihood.entrySet()) {
-            if (likelihoodEntry.getValue() > ITERATION_THRESHOLD) {
-              emotionToLikelihood.put(likelihoodEntry.getKey(),
-                  emotionToLikelihood.get(likelihoodEntry.getKey()) + likelihoodEntry.getValue());
-            }
-          }
-          Map.Entry<AffectivaEmotion, Float> mostLikely =
-              Collections.max(emotionToLikelihood.entrySet(),
-                  new Comparator<Map.Entry<AffectivaEmotion, Float>>() {
-                    @Override
-                    public int compare(Map.Entry<AffectivaEmotion, Float> emotionFloatEntry,
-                        Map.Entry<AffectivaEmotion, Float> t1) {
-                      return emotionFloatEntry.getValue().compareTo(t1.getValue());
-                    }
-                  });
-          if (mDetectionListener != null) {
-            for (Map.Entry<AffectivaEmotion, Float> emotionLikelihoodEntry : emotionToLikelihood.entrySet()) {
-              if (emotionLikelihoodEntry.getKey() != mostLikely.getKey()
-                  && emotionLikelihoodEntry.getValue() > SUM_THRESHOLD) {
-                mDetectionListener.onReactionDetected(emotionLikelihoodEntry.getKey().getEmotion());
-              }
-            }
-            if (mostLikely.getValue() > SUM_THRESHOLD) {
-              mDetectionListener.onReactionDetected(mostLikely.getKey().getEmotion());
-            }
-          }
-          if (mostLikely.getValue() > SUM_THRESHOLD) {
-            Log.d(TAG, "Detected " + mostLikely.getKey().getEmotion());
-            resetLikelihoodMap();
-          }
-        }
-      }
-    });
-  }
-
-  public void setDetectionListener(ReactionDetectionListener detectionListener) {
-    resetLikelihoodMap();
-    mDetectionListener = detectionListener;
+    mFrameDetector.setDetectAllExpressions(true);
+    mFrameDetector.setImageListener(new AffectivaImageListener(reactionDetectionManager));
   }
 
   /**
@@ -168,16 +97,6 @@ public class DetectionHandler extends Handler {
    */
   void sendStopMessage() {
     sendMessage(obtainMessage(STOP));
-  }
-
-  private void resetLikelihoodMap() {
-    emotionToLikelihood = new HashMap<>();
-    emotionToLikelihood.put(AffectivaEmotion.JOY, 0F);
-    emotionToLikelihood.put(AffectivaEmotion.SURPRISE, 0F);
-    emotionToLikelihood.put(AffectivaEmotion.ANGER, 0F);
-    emotionToLikelihood.put(AffectivaEmotion.FEAR, 0F);
-    emotionToLikelihood.put(AffectivaEmotion.DISGUST, 0F);
-    emotionToLikelihood.put(AffectivaEmotion.SADNESS, 0F);
   }
 
   /**

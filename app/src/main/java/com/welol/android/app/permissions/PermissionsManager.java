@@ -19,6 +19,8 @@ public interface PermissionsManager {
    *
    * @param activity   to provide mContext
    * @param permission for which to enquire
+   *
+   * @return whether the permission was already granted.
    */
-  void requestIfNeeded(Activity activity, Permission permission);
+  boolean requestIfNeeded(Activity activity, Permission permission);
 }

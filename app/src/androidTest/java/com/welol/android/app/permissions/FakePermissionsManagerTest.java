@@ -31,21 +31,22 @@ import static org.junit.Assert.assertTrue;
 
   @Test public void requestIfNeeded_newPermission() throws Exception {
     // requestIfNeeded grants permissions by default
-    mFakePermissionsManager.requestIfNeeded(null, PERMISSION);
+    assertFalse(mFakePermissionsManager.requestIfNeeded(null, PERMISSION));
     assertTrue(mFakePermissionsManager.isPermissionGranted(PERMISSION));
   }
 
   @Test public void requestIfNeeded_alreadyForbidden() throws Exception {
     mFakePermissionsManager.forbid(PERMISSION);
     // requestIfNeeded does not override forbid.
-    mFakePermissionsManager.requestIfNeeded(null, PERMISSION);
+    assertFalse(mFakePermissionsManager.requestIfNeeded(null, PERMISSION));
     assertFalse(mFakePermissionsManager.isPermissionGranted(PERMISSION));
   }
 
   @Test public void requestCallback_invokedWhenForbidden() throws Exception {
     // Enables invocation of request callback.
     mFakePermissionsManager.forbid(PERMISSION);
-    mFakePermissionsManager.requestIfNeeded(mTestActivityRule.getActivity(), PERMISSION);
+    assertFalse(
+        mFakePermissionsManager.requestIfNeeded(mTestActivityRule.getActivity(), PERMISSION));
     // Should navigate to AskForPermissionActivity
     waitForActivity(AskForPermissionActivity.class);
   }
@@ -55,7 +56,8 @@ import static org.junit.Assert.assertTrue;
     mFakePermissionsManager.invokeRequestCallback();
     // Grants permission
     mFakePermissionsManager.grant(PERMISSION);
-    mFakePermissionsManager.requestIfNeeded(mTestActivityRule.getActivity(), PERMISSION);
+    assertTrue(
+        mFakePermissionsManager.requestIfNeeded(mTestActivityRule.getActivity(), PERMISSION));
     // Should stay in TestActivity
     waitForActivity(TestActivity.class);
   }
@@ -65,7 +67,7 @@ import static org.junit.Assert.assertTrue;
     // Permission is not granted
     assertFalse(mFakePermissionsManager.isPermissionGranted(PERMISSION));
     // requested permission and still not granted.
-    mFakePermissionsManager.requestIfNeeded(null, PERMISSION);
+    assertFalse(mFakePermissionsManager.requestIfNeeded(null, PERMISSION));
     assertFalse(mFakePermissionsManager.isPermissionGranted(PERMISSION));
   }
 
@@ -74,11 +76,11 @@ import static org.junit.Assert.assertTrue;
     mFakePermissionsManager.forbid(PERMISSION);
     assertFalse(mFakePermissionsManager.isPermissionGranted(PERMISSION));
     // Even after request the permission is not granted.
-    mFakePermissionsManager.requestIfNeeded(null, PERMISSION);
+    assertFalse(mFakePermissionsManager.requestIfNeeded(null, PERMISSION));
     assertFalse(mFakePermissionsManager.isPermissionGranted(PERMISSION));
     // Reset its state.
     mFakePermissionsManager.reset(PERMISSION);
-    mFakePermissionsManager.requestIfNeeded(null, PERMISSION);
+    assertFalse(mFakePermissionsManager.requestIfNeeded(null, PERMISSION));
     // Should have been granted by now.
     assertTrue(mFakePermissionsManager.isPermissionGranted(PERMISSION));
   }

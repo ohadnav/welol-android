@@ -12,5 +12,5 @@ public class RequestCodes {
   public static final int PERMISSION_RECORD_AUDIO = 4;
 
   // ----------------- intent request codes -------------------------
-  public static final int ON_BOARDING = 3;
+  public static final int PLAY_LEVEL = 3;
 }

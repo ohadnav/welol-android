@@ -17,16 +17,6 @@ public class FakeReactionDetectionManager extends BaseReactionDetectionManager {
     super.onReactionDetected(reaction);
   }
 
-  @Override public void onFaceDetectionStarted() {
-    Log.d(TAG, "FAKE onFaceDetectionStarted");
-    super.onFaceDetectionStarted();
-  }
-
-  @Override public void onFaceDetectionStopped() {
-    Log.d(TAG, "FAKE onFaceDetectionStopped");
-    super.onFaceDetectionStopped();
-  }
-
   /**
    * @param listener to check for
    *

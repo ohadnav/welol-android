@@ -1,5 +1,7 @@
 package com.welol.android.viewmodel.viewinterface;
 
+import android.support.annotation.StringRes;
+import android.support.design.widget.Snackbar;
 import android.widget.Toast;
 import com.welol.android.view.activity.BaseActivity;
 import eu.inloop.viewmodel.IView;
@@ -15,6 +17,16 @@ public interface BaseViewInterface extends IView {
    * @param text to show within the toast.
    */
   void toast(String text);
+
+  /**
+   * @param stringResourceId to show in {@link Snackbar}
+   */
+  void snackbar(@StringRes int stringResourceId);
+
+  /**
+   * Hides the snackbar, if visible.
+   */
+  void hideSnackbar();
 
   /**
    * @return the activity associated with this view model.

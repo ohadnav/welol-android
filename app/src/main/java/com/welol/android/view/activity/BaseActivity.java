@@ -9,6 +9,8 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -44,7 +46,14 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
    * Logging tag. Assigned per implementing class in {@link #onCreate(Bundle)}.
    */
   String TAG = this.getClass().getSimpleName();
+
+  private Snackbar mSnackbar;
+  private Stage mLifecycleStage = Stage.DESTROYED;
   @Nullable private ViewModelProvider mViewModelProvider;
+
+  public Stage getLifecycleStage() {
+    return mLifecycleStage;
+  }
 
   @Nullable public ViewModelProvider getViewModelProvider() {
     return mViewModelProvider;
@@ -147,12 +156,14 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     initializeViewModel();
     // Bind views references.
     ButterKnife.bind(this);
+    mLifecycleStage = Stage.CREATED;
   }
 
   @CallSuper @Override public void onStart() {
     Log.d(TAG, "onStart");
     super.onStart();
     mViewModelHelper.onStart();
+    mLifecycleStage = Stage.STARTED;
   }
 
   @CallSuper @Override public void onStop() {
@@ -166,12 +177,14 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
       mViewModelProvider.removeAllViewModels();
     }
     mViewModelHelper.onStop();
+    mLifecycleStage = Stage.STOPPED;
   }
 
   @CallSuper @Override public void onDestroy() {
     Log.d(TAG, "onDestroy");
     mViewModelHelper.onDestroy(this);
     super.onDestroy();
+    mLifecycleStage = Stage.DESTROYED;
   }
 
   @CallSuper @Override public void onSaveInstanceState(@NonNull final Bundle outState) {
@@ -182,6 +195,21 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
 
   @Override public void toast(String text) {
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+  }
+
+  @Override public void snackbar(@StringRes int stringResourceId) {
+    if (mSnackbar != null) {
+      mSnackbar.dismiss();
+    }
+    mSnackbar = Snackbar.make(findViewById(android.R.id.content), stringResourceId,
+        Snackbar.LENGTH_INDEFINITE);
+    mSnackbar.show();
+  }
+
+  @Override public void hideSnackbar() {
+    if (mSnackbar != null && mSnackbar.isShown()) {
+      mSnackbar.dismiss();
+    }
   }
 
   @Override public BaseActivity getBaseActivity() {
@@ -212,6 +240,7 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     Log.d(TAG, "onPause");
     super.onPause();
     getViewModel().onPause();
+    mLifecycleStage = Stage.PAUSED;
   }
 
   @CallSuper @Override public void onResume() {
@@ -221,6 +250,7 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
       Crashlytics.setString(LoggingKey.ACTIVITY.name(), TAG);
     }
     getViewModel().onResume();
+    mLifecycleStage = Stage.RESUMED;
   }
 
   @Override @Nullable public Object onRetainCustomNonConfigurationInstance() {
@@ -250,7 +280,27 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     if (mViewModelHelper.getBinding() == null) {
       throw new IllegalStateException("Binding cannot be null.");
     }
-    // Sets up context
-    mViewModelHelper.getViewModel().setContext(this);
+  }
+
+  enum Stage {
+    /**
+     * Indicates that onCreate has been called.
+     */
+    CREATED, /**
+     * Indicates that onStart has been called.
+     */
+    STARTED, /**
+     * Indicates that onResume has been called - activity is now visible to user.
+     */
+    RESUMED, /**
+     * Indicates that onPause has been called - activity is no longer in the foreground.
+     */
+    PAUSED, /**
+     * Indicates that onStop has been called - activity is no longer visible to the user.
+     */
+    STOPPED, /**
+     * Indicates that onDestroy has been called - system is shutting down the activity.
+     */
+    DESTROYED
   }
 }

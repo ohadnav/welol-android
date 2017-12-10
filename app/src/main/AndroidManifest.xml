@@ -8,7 +8,6 @@
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
-
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
   <uses-feature android:name="android.hardware.camera.any"/>
@@ -35,7 +34,6 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
-
     <activity android:name=".view.activity.MainActivity">
     </activity>
     <activity android:name=".view.activity.AskForPermissionActivity">
@@ -50,5 +48,9 @@
     <meta-data
         android:name="io.fabric.ApiKey"
         android:value="ddc8f05b8b5cc1630205777b73f3254602112b8e"/>
+
+    <activity android:name=".view.activity.LevelActivity">
+    </activity>
   </application>
+
 </manifest>

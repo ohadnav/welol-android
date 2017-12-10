@@ -1,7 +1,6 @@
 package com.welol.android.viewmodel;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
@@ -25,7 +24,6 @@ public class BaseViewModel<ViewInterface extends BaseViewInterface> implements B
   @Nullable private String mUniqueIdentifier;
   @Nullable private ViewInterface mView;
   private boolean mBindViewWasCalled;
-  private Context mContext;
 
   /**
    * @return An app unique identifier for the current viewmodel instance (will be kept during
@@ -63,6 +61,9 @@ public class BaseViewModel<ViewInterface extends BaseViewInterface> implements B
   }
 
   @Nullable public ViewInterface getView() {
+    if (mView == null) {
+      Log.w(TAG, "View is null");
+    }
     return mView;
   }
 
@@ -112,14 +113,6 @@ public class BaseViewModel<ViewInterface extends BaseViewInterface> implements B
 
   @CallSuper public void clearView() {
     mView = null;
-  }
-
-  Context getContext() {
-    return mContext;
-  }
-
-  public void setContext(Context context) {
-    mContext = context;
   }
 
   /**

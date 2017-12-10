@@ -1,7 +1,8 @@
 package com.welol.android.empathy;
 
+import android.content.Context;
 import android.os.HandlerThread;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 /**
@@ -14,13 +15,13 @@ public class AffectivaReactionDetectionManager extends BaseReactionDetectionMana
   private HandlerThread detectionThread;
   private DetectionHandler detectionHandler;
 
-  public void start(AppCompatActivity activity) {
-    Log.d(TAG, "start");
+  @Override public void start(@Nullable Context context) {
+    super.start(context);
     if (detectionThread == null) {
       // fire up the background thread
       detectionThread = new DetectionThread();
       detectionThread.start();
-      detectionHandler = new DetectionHandler(activity, detectionThread);
+      detectionHandler = new DetectionHandler(context, detectionThread, this);
       detectionHandler.sendStartMessage();
     }
   }
