@@ -21,21 +21,25 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:text="@{viewModel.mTitleTextResourceId}"
         android:textColor="@{viewModel.mTitleTextColor}"
-        android:textSize="36sp"
+        android:textSize="42sp"
         app:layout_constraintBottom_toTopOf="@+id/subtitle"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="spread"
         />
 
     <com.welol.android.view.custom.StyledTextView
         android:id="@+id/subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingEnd="24dp"
+        android:paddingStart="24dp"
         android:text="@{viewModel.mSubtitleText}"
-        android:textSize="24sp"
+        android:textSize="32sp"
         app:layout_constraintBottom_toTopOf="@+id/noLaughImage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,46 +48,58 @@
 
     <ImageView
         android:id="@+id/noLaughImage"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
         android:contentDescription="@string/image_content_description"
         android:src="@drawable/no_laugh"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/buttonsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title"
+        app:layout_constraintTop_toBottomOf="@id/subtitle"
         />
 
-    <com.welol.android.view.custom.StyledButton
-        android:id="@+id/button"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/buttonsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="@{() -> viewModel.onButtonClicked()}"
-        android:paddingEnd="24dp"
-        android:paddingStart="24dp"
-        android:text="@{viewModel.mButtonTextResourceId}"
-        android:textColor="@color/light"
-        android:textSize="28sp"
-        app:layout_constraintBottom_toTopOf="@+id/playAgain"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/noLaughImage"
-        />
-
-    <com.welol.android.view.custom.StyledTextView
-        android:id="@+id/playAgain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:focusable="true"
-        android:onClick="@{() -> viewModel.startGame()}"
-        android:text="@string/play_again"
-        android:textSize="16sp"
-        android:visibility="@{viewModel.mPlayAgainVisibility}"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/button"
-        />
+        app:layout_constraintTop_toBottomOf="@id/noLaughImage"
+        >
+      <com.welol.android.view.custom.StyledButton
+          android:id="@+id/button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:onClick="@{() -> viewModel.onButtonClicked()}"
+          android:paddingEnd="24dp"
+          android:paddingStart="24dp"
+          android:text="@{viewModel.mButtonTextResourceId}"
+          android:textColor="@color/light"
+          android:textSize="28sp"
+          app:layout_constraintBottom_toTopOf="@+id/playAgain"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          />
+
+      <com.welol.android.view.custom.StyledTextView
+          android:id="@+id/playAgain"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:clickable="true"
+          android:focusable="true"
+          android:onClick="@{() -> viewModel.startGame()}"
+          android:text="@string/play_again"
+          android:textSize="16sp"
+          android:visibility="@{viewModel.mPlayAgainVisibility}"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@id/button"
+          />
+    </android.support.constraint.ConstraintLayout>
+
   </android.support.constraint.ConstraintLayout>
 </layout>

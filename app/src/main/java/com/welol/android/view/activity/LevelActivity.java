@@ -1,8 +1,10 @@
 package com.welol.android.view.activity;
 
 import android.content.Intent;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,9 +41,17 @@ public class LevelActivity
   private Level mLevel;
   private MediaPlayer mMediaPlayer;
   private boolean mIsMediaPlayerPrepared = false;
+  private Size mVideoSize;
 
   @Override public void play() {
     if (getLifecycleStage() == Stage.RESUMED && mIsMediaPlayerPrepared) {
+      mMediaPlayer.start();
+    }
+  }
+
+  @Override public void replay() {
+    if (getLifecycleStage() == Stage.RESUMED && mIsMediaPlayerPrepared) {
+      mMediaPlayer.seekTo(0);
       mMediaPlayer.start();
     }
   }
@@ -114,15 +124,26 @@ public class LevelActivity
    */
   @Override public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width,
       int height) {
+    Uri uri = null;
     if (mLevel.getVideoUrl() != null) {
+      uri = Uri.parse(mLevel.getVideoUrl());
       // Initialize media player and retriever from external URI, i.e. from other users videos.
-      mMediaPlayer = MediaPlayer.create(this, Uri.parse(mLevel.getVideoUrl()));
+      mMediaPlayer = MediaPlayer.create(this, uri);
     } else if (mLevel.getVideoResourceId() != null) {
       mMediaPlayer = MediaPlayer.create(this, mLevel.getVideoResourceId());
+      uri = Uri.parse(
+          "android.resource://" + getPackageName() + "/raw/" + mLevel.getVideoResourceId());
     }
     if (mMediaPlayer == null) {
       throw new IllegalStateException("Failed to create media player for " + mLevel.getVideoUrl());
     }
+    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+    retriever.setDataSource(this, uri);
+    mVideoSize = new Size(Integer.parseInt(
+        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)),
+        Integer.parseInt(
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)));
+    updateTextureViewSize(width, height);
     // Media player properties
     mMediaPlayer.setSurface(new Surface(surfaceTexture));
     mMediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
@@ -174,6 +195,37 @@ public class LevelActivity
 
   @Override public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
+  }
+
+  private void updateTextureViewSize(int viewWidth, int viewHeight) {
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+
+    if (mVideoSize.getWidth() > viewWidth && mVideoSize.getHeight() > viewHeight) {
+      scaleX = mVideoSize.getWidth() / (float) viewWidth;
+      scaleY = mVideoSize.getHeight() / (float) viewHeight;
+    } else if (mVideoSize.getWidth() < viewWidth && mVideoSize.getHeight() < viewHeight) {
+      scaleY = viewWidth / (float) mVideoSize.getWidth();
+      scaleX = viewHeight / (float) mVideoSize.getHeight();
+    } else if (viewWidth > mVideoSize.getWidth()) {
+      scaleY = (viewWidth / (float) mVideoSize.getWidth()) / (viewHeight
+          / (float) mVideoSize.getHeight());
+    } else if (viewHeight > mVideoSize.getHeight()) {
+      scaleX = (viewHeight / (float) mVideoSize.getHeight()) / (viewWidth
+          / (float) mVideoSize.getWidth());
+    }
+
+    // Calculate pivot points, in our case crop from center
+    int pivotPointX = viewWidth / 2;
+    int pivotPointY = viewHeight / 2;
+
+    float minScale = Math.min(scaleX, scaleY);
+    scaleX /= minScale;
+    scaleY /= minScale;
+
+    Matrix matrix = new Matrix();
+    matrix.setScale(scaleX, scaleY, pivotPointX, pivotPointY);
+    mVideoTextureView.setTransform(matrix);
   }
 
   private void killMediaPlayer() {

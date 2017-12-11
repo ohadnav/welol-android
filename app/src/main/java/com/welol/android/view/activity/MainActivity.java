@@ -7,7 +7,7 @@ import com.welol.android.R;
 import com.welol.android.databinding.ActivityMainBinding;
 import com.welol.android.model.Level;
 import com.welol.android.model.LevelsProvider;
-import com.welol.android.model.StaticLevelProvider;
+import com.welol.android.model.RandomLevelProvider;
 import com.welol.android.util.RequestCodes;
 import com.welol.android.viewmodel.MainViewModel;
 import com.welol.android.viewmodel.viewinterface.MainViewInterface;
@@ -26,7 +26,7 @@ public class MainActivity
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Fabric.with(this, new Crashlytics());
-    mLevelsProvider = new StaticLevelProvider();
+    mLevelsProvider = new RandomLevelProvider();
   }
 
   @Override public void playLevel(Level level) {

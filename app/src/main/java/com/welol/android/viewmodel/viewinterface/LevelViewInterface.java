@@ -9,9 +9,14 @@ import com.welol.android.model.Level;
 public interface LevelViewInterface extends BaseViewInterface {
 
   /**
-   * Starts or resumes the level.
+   * Resumes the level.
    */
   void play();
+
+  /**
+   * Replays the level's video.
+   */
+  void replay();
 
   /**
    * Pauses the level, usually due to loading or lost face by the detector.

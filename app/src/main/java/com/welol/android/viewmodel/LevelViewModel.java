@@ -15,10 +15,16 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
     implements ReactionDetectionListener {
 
   private static final Emotion LOSING_REACTION = Emotion.HAPPY;
+  private boolean mReplayed = false;
 
   public void onVideoFinished() {
     if (getView() != null) {
-      getView().finishLevel(Level.Result.WIN);
+      if (mReplayed) {
+        getView().finishLevel(Level.Result.WIN);
+      } else {
+        mReplayed = true;
+        getView().replay();
+      }
     }
   }
 

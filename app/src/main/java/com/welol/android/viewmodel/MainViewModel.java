@@ -10,7 +10,7 @@ import com.welol.android.app.App;
 import com.welol.android.app.permissions.Permission;
 import com.welol.android.model.Level;
 import com.welol.android.viewmodel.viewinterface.MainViewInterface;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Proudly created by ohad on 03/12/2017 for TrueThat.
@@ -25,9 +25,9 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public final ObservableField<String> mSubtitleText = new ObservableField<>();
   public final ObservableInt mTitleTextColor = new ObservableInt(R.color.secondary);
   public final ObservableInt mButtonTextResourceId = new ObservableInt(R.string.lets_go);
-  public final ObservableInt mPlayAgainVisibility = new ObservableInt(View.GONE);
+  public final ObservableInt mPlayAgainVisibility = new ObservableInt(View.INVISIBLE);
   private State mState = State.LAUNCH;
-  private List<Level> mLevels;
+  private ArrayList<Level> mLevels;
   private Integer mCurrentLevel;
 
   @Override public void onBindView(@NonNull MainViewInterface view) {
@@ -49,7 +49,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
       outState.putSerializable(BUNDLE_STATE, mState);
     }
     if (mLevels != null) {
-      outState.putParcelableArray(BUNDLE_LEVELS, (Level[]) mLevels.toArray());
+      outState.putParcelableArrayList(BUNDLE_LEVELS, mLevels);
     }
     if (mCurrentLevel != null) {
       outState.putInt(BUNDLE_CURRENT_LEVEL, mCurrentLevel);
@@ -93,12 +93,13 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public void startGame() {
     if (getView() != null) {
       mState = State.PLAYING;
-      mLevels = getView().getLevelsProvider().provide();
+      mLevels = new ArrayList<>(getView().getLevelsProvider().provide());
       mCurrentLevel = 0;
       mSubtitleText.set(getView().getBaseActivity().getResources().getString(R.string.dont_smile));
       mButtonTextResourceId.set(R.string.lets_go);
       mTitleTextColor.set(R.color.secondary);
       mTitleTextResourceId.set(R.string.dont_laugh);
+      mPlayAgainVisibility.set(View.INVISIBLE);
     }
   }
 

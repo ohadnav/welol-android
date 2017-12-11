@@ -26,6 +26,7 @@ public class BaseReactionDetectionManager
     Log.d(TAG, "Starting detection.");
     mState = State.DETECTING;
     mReactionDetectionListeners = new HashSet<>();
+    mHasAttention = false;
   }
 
   @Override public void subscribe(ReactionDetectionListener reactionDetectionListener) {
