@@ -7,12 +7,12 @@
   <string name="dont_laugh">אל תצחק</string>
   <string name="lets_go">#התחלנו</string>
   <string name="result_win">פשששש מי זה הרציני הזה?</string>
-  <string name="result_lose">חחחח.. ת׳פלי</string>
+  <string name="result_lose">חחחח.. הפסדת!</string>
   <string name="next">הבא</string>
   <string name="share">שתף</string>
   <string name="dont_smile">לא רוצה לראות כאן חיוך!</string>
   <string name="game_finished">סחטיין %d סרטים בלי לצחוק!</string>
-  <string name="lost_face">מחפש פנים…</string>
+  <string name="lost_face">איפה הפנים שלך?… 🤔</string>
   <string name="share_text">97% צוחקים. יש לך את מה שצריך לנצח את #LaughChallenge? באמת? https://goo.gl/e85ZWb</string>
   <string name="play_again">שחק שוב</string>
 </resources>

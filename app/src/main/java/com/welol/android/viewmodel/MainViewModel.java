@@ -37,9 +37,13 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
 
   @Override public void onResume() {
     super.onResume();
-    if (mState == State.PERMISSION_REQUEST && App.getPermissionsManager()
-        .isPermissionGranted(Permission.CAMERA)) {
-      onButtonClicked();
+    if (getView() != null) {
+      // Request camera permission
+      if (App.getPermissionsManager()
+          .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)) {
+        // Start detection
+        App.getReactionDetectionManager().start(getView().getBaseActivity());
+      }
     }
   }
 
@@ -71,13 +75,14 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     }
   }
 
+  @Override public void onDestroy() {
+    super.onDestroy();
+    // Stop detection
+    App.getReactionDetectionManager().stop();
+  }
+
   public void onButtonClicked() {
     if (getView() == null) {
-      return;
-    }
-    if (!App.getPermissionsManager()
-        .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)) {
-      mState = State.PERMISSION_REQUEST;
       return;
     }
     if (mState.ordinal() < State.PLAYING.ordinal()) {
@@ -126,6 +131,6 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   }
 
   private enum State {
-    LAUNCH, PERMISSION_REQUEST, PLAYING, GAME_FINISHED
+    LAUNCH, PLAYING, GAME_FINISHED
   }
 }

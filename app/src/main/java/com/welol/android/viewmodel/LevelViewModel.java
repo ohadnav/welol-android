@@ -53,15 +53,12 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
   @Override public void onResume() {
     super.onResume();
     if (getView() != null) {
-      App.getReactionDetectionManager().start(getView().getBaseActivity());
       App.getReactionDetectionManager().subscribe(this);
     }
   }
 
   @Override public void onPause() {
     super.onPause();
-    App.getReactionDetectionManager().unsubscribe(this);
-    App.getReactionDetectionManager().stop();
     if (getView() != null) {
       getView().pause();
     }
