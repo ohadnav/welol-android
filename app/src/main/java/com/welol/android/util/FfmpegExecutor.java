@@ -25,7 +25,7 @@ public class FfmpegExecutor {
   private static final String VIDEO_MP4 = "video.mp4";
   private static final String TAG = FfmpegExecutor.class.getSimpleName();
   private static final float MAX_OVERLAY_DIMENSION = 240F;
-  private static final float MAX_RECORDING_DIMENSION = 110F;
+  private static final float MAX_RECORDING_DIMENSION = 120F;
 
   private static void execCommand(final String[] command,
       @Nullable final ExecuteBinaryResponseHandler responseHandler) {
@@ -72,12 +72,9 @@ public class FfmpegExecutor {
   public static void createOverlay(Context context, Video video, String dirPath,
       @Nullable ExecuteBinaryResponseHandler responseHandler) {
     Size videoSize = getVideoSize(context, video.getUri());
-    Size recordingSize =
-        getVideoSize(context, Uri.fromFile(new File(dirPath, VIEWER_RECORDING_MP4)));
     String videoPath = getAbsolutePath(context, video.getUri(), dirPath);
     if (videoPath != null) {
-      execCommand(generateOverlayCommand(context, dirPath, videoSize, recordingSize),
-          responseHandler);
+      execCommand(generateOverlayCommand(context, dirPath, videoSize), responseHandler);
     } else if (responseHandler != null) {
       responseHandler.onFailure("Could not create video file.");
     }
@@ -113,15 +110,10 @@ public class FfmpegExecutor {
     }
   }
 
-  private static String[] generateOverlayCommand(Context context, String dirPath, Size videoSize,
-      Size overlaySize) {
+  private static String[] generateOverlayCommand(Context context, String dirPath, Size videoSize) {
     String filter = "[0] setpts=PTS-STARTPTS, scale="
         + getScaleString(videoSize, MAX_OVERLAY_DIMENSION)
-        + " [video];"
-        + "[1] setpts=PTS-STARTPTS, scale="
-        + getScaleString(overlaySize, MAX_RECORDING_DIMENSION)
-        + ",transpose=2 [overlay];"
-        + "[video][overlay] overlay=shortest=1:x=W-w-10:y=H-h-10 [result]";
+        + " [video];" + "[video][1] overlay=shortest=1:x=W-w-5:y=H-h-5 [result]";
     return new String[] {
         "-y", "-i", dirPath + "/" + VIDEO_MP4, "-i", dirPath + "/" + VIEWER_RECORDING_MP4,
         "-filter_complex", filter, "-map", "[result]", "-vcodec", "libx264", "-acodec", "copy",
@@ -139,9 +131,21 @@ public class FfmpegExecutor {
   private static String[] generateVideoFromFramesCommand(String framesDir, float durationMs) {
     File dir = new File(framesDir);
     String frameRate = "" + dir.listFiles().length * 1000 / durationMs;
+    String scale;
+    // Inverse dimensions, as we are about to transpose.
+    int width = App.getCameraHelper().getFrameSize().getHeight();
+    int height = App.getCameraHelper().getFrameSize().getWidth();
+    if (width > height) {
+      scale = MAX_RECORDING_DIMENSION + "x" + Math.round(
+          height * MAX_RECORDING_DIMENSION / (float) width);
+    } else {
+      scale = Math.round(width * MAX_RECORDING_DIMENSION / (float) height)
+          + "x"
+          + MAX_RECORDING_DIMENSION;
+    }
     return new String[] {
-        "-y", "-r", frameRate, "-i", framesDir + "/%d.jpg", "-pix_fmt", "yuv420p", "-b:v", "100k",
-        "-vcodec", "libx264", "-r", frameRate,
+        "-y", "-r", frameRate, "-i", framesDir + "/%d.jpg", "-pix_fmt", "yuv420p", "-vcodec",
+        "libx264", "-r", frameRate, "-vf", "transpose=2", "-s", scale,
         new File(framesDir, VIEWER_RECORDING_MP4).getAbsolutePath()
     };
   }

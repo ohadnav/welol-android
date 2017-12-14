@@ -233,7 +233,6 @@ public class VideoFragment extends
     // Completion callbacks, that allows video looping and informing the listener.
     mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.d(TAG, "Video finished.");
         if (mVideoListener != null) {
           mVideoListener.onFinished();
         }

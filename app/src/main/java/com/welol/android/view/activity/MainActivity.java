@@ -85,15 +85,16 @@ public class MainActivity
 
   @Override public void share(int passedLevels) {
     Intent shareIntent = new Intent(Intent.ACTION_SEND);
-    shareIntent.setType("text/plain");
-    shareIntent.putExtra(Intent.EXTRA_TEXT,
-        getResources().getString(R.string.share_text, passedLevels));
     if (mViewerRecording != null) {
-      shareIntent.setType("*/*");
+      shareIntent.setType("video/mp4");
       shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(mViewerRecording)));
+    } else {
+      shareIntent.setType("text/plain");
+      shareIntent.putExtra(Intent.EXTRA_TEXT,
+          getResources().getString(R.string.share_text, passedLevels));
     }
-    startActivity(Intent.createChooser(shareIntent, "Share app using"));
+    startActivity(Intent.createChooser(shareIntent, "Share using"));
   }
 
   @Override public void hideVideo() {

@@ -11,6 +11,7 @@ import android.view.Display;
 import android.view.WindowManager;
 import com.affectiva.android.affdex.sdk.Frame;
 import com.affectiva.android.affdex.sdk.detector.FrameDetector;
+import com.welol.android.app.App;
 import com.welol.android.camera.CameraHelper;
 import com.welol.android.util.AppUtil;
 import java.util.Date;
@@ -101,16 +102,21 @@ public class DetectionHandler extends Handler {
    * A mListener for CameraHelper callbacks
    */
   private class CameraHelperListener implements CameraHelper.Listener {
-    private static final long TIMESTAMP_DELTA_MILLIS = 100;
+    // Accept 5 frames per second.
+    private static final long TIMESTAMP_DELTA_MILLIS = 200;
     private Date lastTimestamp = new Date();
     private float detectionTimestamp = 0;
 
     @Override
     public void onFrameAvailable(byte[] frame, int width, int height, Frame.ROTATE rotation) {
+      if (App.getReactionDetectionManager().isPaused()) {
+        return;
+      }
       Date timeStamp = new Date();
       if (timeStamp.getTime() > lastTimestamp.getTime() + TIMESTAMP_DELTA_MILLIS) {
         lastTimestamp = timeStamp;
         detectionTimestamp += 0.1;
+
         mFrameDetector.process(createFrameFromData(frame, width, height, rotation),
             detectionTimestamp);
       }

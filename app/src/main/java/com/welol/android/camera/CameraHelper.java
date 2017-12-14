@@ -11,6 +11,7 @@ import android.hardware.Camera;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Size;
 import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -57,6 +58,7 @@ import java.util.List;
   private File mRecordingDir;
   private long mRecordingDurationMs;
   private long mRecordingLastStart;
+  private Size mFrameSize;
 
   public CameraHelper(@NonNull Context context, @NonNull Display display,
       @NonNull Listener listener) {
@@ -76,6 +78,10 @@ import java.util.List;
   private static boolean checkPermission(Context context) {
     return context.checkPermission(Manifest.permission.CAMERA, Process.myPid(), Process.myUid())
         == PackageManager.PERMISSION_GRANTED;
+  }
+
+  public Size getFrameSize() {
+    return mFrameSize;
   }
 
   /**
@@ -437,6 +443,7 @@ import java.util.List;
         try {
           Camera.Parameters parameters = camera.getParameters();
           Camera.Size size = parameters.getPreviewSize();
+          mFrameSize = new Size(size.width, size.height);
           YuvImage image =
               new YuvImage(data, parameters.getPreviewFormat(), size.width, size.height, null);
           File file = new File(mRecordingDir, mRecordingFrameIndex + ".jpg");

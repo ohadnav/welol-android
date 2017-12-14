@@ -8,6 +8,8 @@ import com.welol.android.model.Emotion;
 import com.welol.android.model.Level;
 import com.welol.android.view.fragment.VideoFragment;
 import com.welol.android.viewmodel.viewinterface.LevelViewInterface;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Proudly created by ohad on 04/12/2017 for TrueThat.
@@ -17,9 +19,11 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
     implements ReactionDetectionListener, VideoFragment.VideoListener {
 
   private static final Emotion LOSING_REACTION = Emotion.HAPPY;
+  private static final int DELAY = 2000;
   private boolean mReplayed = false;
   private String mRecordingDir;
   private Level.Result mResult;
+  private Timer mAttemtionTimer;
 
   @Override public void onBufferingStart() {
     pause();
@@ -49,7 +53,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
   @Override public void onPrepared() {
     if (getView() != null) {
       if (!App.getReactionDetectionManager().hasAttention()) {
-        getView().snackbar(R.string.lost_face);
+        startAttentionTimer();
       }
       play();
     }
@@ -58,6 +62,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
   @Override public void onResume() {
     super.onResume();
     if (getView() != null) {
+      App.getReactionDetectionManager().resume();
       App.getReactionDetectionManager().subscribe(this);
       if (getView().isPrepared()) {
         play();
@@ -67,11 +72,14 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
 
   @Override public void onPause() {
     super.onPause();
+    App.getReactionDetectionManager().pause();
     pause();
+    killTimer();
   }
 
   @Override public void onReactionDetected(Emotion reaction) {
     if (reaction == LOSING_REACTION && getView() != null && mResult != Level.Result.LOSE) {
+      App.getReactionDetectionManager().pause();
       mResult = Level.Result.LOSE;
       getView().snackbar(R.string.smile_detected);
     }
@@ -80,6 +88,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
   @Override public void onAttention() {
     if (getView() != null) {
       getView().hideSnackbar();
+      killTimer();
     }
   }
 
@@ -102,6 +111,22 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
     if (getView() != null) {
       getView().pause();
       App.getCameraHelper().pauseRecording();
+    }
+  }
+
+  private void startAttentionTimer() {
+    mAttemtionTimer = new Timer();
+    mAttemtionTimer.schedule(new TimerTask() {
+      @Override public void run() {
+        onAttentionLost();
+      }
+    }, DELAY);
+  }
+
+  private void killTimer() {
+    if (mAttemtionTimer != null) {
+      mAttemtionTimer.cancel();
+      mAttemtionTimer = null;
     }
   }
 }
