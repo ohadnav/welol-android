@@ -40,23 +40,48 @@
         android:paddingStart="24dp"
         android:text="@{viewModel.mSubtitleText}"
         android:textSize="32sp"
-        app:layout_constraintBottom_toTopOf="@+id/noLaughImage"
+        app:layout_constraintBottom_toTopOf="@+id/mediaLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title"
         />
 
-    <ImageView
-        android:id="@+id/noLaughImage"
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/mediaLayout"
         android:layout_width="240dp"
         android:layout_height="240dp"
-        android:contentDescription="@string/image_content_description"
-        android:src="@drawable/no_laugh"
         app:layout_constraintBottom_toTopOf="@+id/buttonsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/subtitle"
-        />
+        >
+      <ImageView
+          android:id="@+id/noLaughImage"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:contentDescription="@string/image_content_description"
+          android:src="@drawable/no_laugh"
+          android:visibility="@{viewModel.mNoLaughImageVisibility}"
+          app:layout_constraintBottom_toTopOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="parent"
+          />
+      <ImageView
+          android:id="@+id/loadingImage"
+          android:layout_width="80dp"
+          android:layout_height="80dp"
+          android:contentDescription="@string/image_content_description"
+          android:scaleType="centerInside"
+          android:visibility="@{viewModel.mLoadingImageVisibility}"
+          app:layout_constraintBottom_toTopOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent"
+          app:srcCompat="@drawable/anim_loading"
+          />
+    </android.support.constraint.ConstraintLayout>
+
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/buttonsLayout"
@@ -65,7 +90,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/noLaughImage"
+        app:layout_constraintTop_toBottomOf="@id/mediaLayout"
         >
       <com.welol.android.view.custom.StyledButton
           android:id="@+id/button"

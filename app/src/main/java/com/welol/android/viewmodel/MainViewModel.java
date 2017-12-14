@@ -4,11 +4,13 @@ import android.databinding.ObservableField;
 import android.databinding.ObservableInt;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import com.welol.android.R;
 import com.welol.android.app.App;
 import com.welol.android.app.permissions.Permission;
 import com.welol.android.model.Level;
+import com.welol.android.model.Video;
 import com.welol.android.viewmodel.viewinterface.MainViewInterface;
 import java.util.ArrayList;
 
@@ -26,6 +28,8 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public final ObservableInt mTitleTextColor = new ObservableInt(R.color.secondary);
   public final ObservableInt mButtonTextResourceId = new ObservableInt(R.string.lets_go);
   public final ObservableInt mPlayAgainVisibility = new ObservableInt(View.INVISIBLE);
+  public final ObservableInt mNoLaughImageVisibility = new ObservableInt(View.VISIBLE);
+  public final ObservableInt mLoadingImageVisibility = new ObservableInt(View.GONE);
   private State mState = State.LAUNCH;
   private ArrayList<Level> mLevels;
   private Integer mCurrentLevel;
@@ -40,7 +44,9 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (getView() != null) {
       // Request camera permission
       if (App.getPermissionsManager()
-          .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)) {
+          .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)
+          && App.getPermissionsManager()
+          .requestIfNeeded(getView().getBaseActivity(), Permission.RECORD_AUDIO)) {
         // Start detection
         App.getReactionDetectionManager().start(getView().getBaseActivity());
       }
@@ -91,11 +97,12 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (mState == State.PLAYING) {
       getView().playLevel(mLevels.get(mCurrentLevel));
     } else if (mState == State.GAME_FINISHED) {
-      getView().share();
+      getView().share(mCurrentLevel);
     }
   }
 
   public void startGame() {
+    Log.d(TAG, "startGame");
     if (getView() != null) {
       mState = State.PLAYING;
       mLevels = new ArrayList<>(getView().getLevelsProvider().provide());
@@ -105,27 +112,52 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
       mTitleTextColor.set(R.color.secondary);
       mTitleTextResourceId.set(R.string.dont_laugh);
       mPlayAgainVisibility.set(View.INVISIBLE);
+      mNoLaughImageVisibility.set(View.VISIBLE);
+      mLoadingImageVisibility.set(View.GONE);
+      getView().hideVideo();
     }
   }
 
   public void onLevelFinished(Level.Result result) {
+    Log.d(TAG, "onLevelFinished with " + result);
     mTitleTextResourceId.set(result.getDescriptionResourceId());
     mTitleTextColor.set(result == Level.Result.WIN ? R.color.success : R.color.error);
     if (mCurrentLevel < mLevels.size() - 1 && result == Level.Result.WIN) {
       prepareNextLevel();
     } else {
-      mState = State.GAME_FINISHED;
-      mPlayAgainVisibility.set(View.VISIBLE);
-      mButtonTextResourceId.set(R.string.share);
-      if (getView() != null) {
-        mSubtitleText.set(getView().getBaseActivity()
-            .getResources()
-            .getString(R.string.game_finished, mCurrentLevel));
-      }
+      onGameFinished(result);
+    }
+  }
+
+  public void onViewRecordingReady(Video video) {
+    Log.d(TAG, "onViewRecordingReady at " + video.getUri());
+    if (getView() != null) {
+      mLoadingImageVisibility.set(View.GONE);
+      getView().showVideo(video);
+    }
+  }
+
+  private void onGameFinished(Level.Result result) {
+    Log.d(TAG, "gameFinished");
+    mState = State.GAME_FINISHED;
+    mPlayAgainVisibility.set(View.VISIBLE);
+    mNoLaughImageVisibility.set(View.INVISIBLE);
+    mButtonTextResourceId.set(R.string.share);
+    if (getView() != null) {
+      mLoadingImageVisibility.set(View.VISIBLE);
+      getView().showVideo(mLevels.get(mCurrentLevel).getVideo());
+      mSubtitleText.set(getView().getBaseActivity()
+          .getResources()
+          .getString(R.string.game_finished, mCurrentLevel));
+      getView().generateViewerRecordingOverlay();
+    }
+    if (result == Level.Result.WIN) {
+      mCurrentLevel++;
     }
   }
 
   private void prepareNextLevel() {
+    Log.d(TAG, "prepareNextLevel");
     mButtonTextResourceId.set(R.string.next);
     mCurrentLevel++;
   }

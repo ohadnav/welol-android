@@ -13,10 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import com.crashlytics.android.Crashlytics;
-import com.welol.android.BuildConfig;
 import com.welol.android.external.viewmodel.ProxyViewHelper;
 import com.welol.android.external.viewmodel.ViewModelHelper;
+import com.welol.android.util.AppUtil;
 import com.welol.android.view.activity.BaseActivity;
 import com.welol.android.viewmodel.BaseFragmentViewModel;
 import com.welol.android.viewmodel.BaseViewModel;
@@ -63,6 +62,14 @@ public abstract class BaseFragment<ViewInterface extends BaseFragmentViewInterfa
     getBaseActivity().toast(text);
   }
 
+  @Override public void snackbar(int stringResourceId) {
+    getBaseActivity().snackbar(stringResourceId);
+  }
+
+  @Override public void hideSnackbar() {
+    getBaseActivity().hideSnackbar();
+  }
+
   @Override public BaseActivity getBaseActivity() {
     return (BaseActivity) getActivity();
   }
@@ -76,9 +83,7 @@ public abstract class BaseFragment<ViewInterface extends BaseFragmentViewInterfa
     try {
       return (DataBinding) mViewModelHelper.getBinding();
     } catch (ClassCastException e) {
-      if (!BuildConfig.DEBUG) {
-        Crashlytics.logException(e);
-      }
+      AppUtil.handleThrowable(e);
       throw new IllegalStateException("Method getViewModelBindingConfig() has to return same "
           + "ViewDataBinding type as it is set to base Fragment");
     }
@@ -103,7 +108,7 @@ public abstract class BaseFragment<ViewInterface extends BaseFragmentViewInterfa
     try {
       // Tries to specify TAG.
       if (!TAG.contains("(")) {
-        TAG += "(" + getResources().getResourceEntryName(getId()) + ")";
+        TAG += "(" + context.getClass().getSimpleName() + ")";
       }
     } catch (Exception ignored) {
     }

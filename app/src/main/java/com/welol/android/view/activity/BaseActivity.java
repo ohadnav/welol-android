@@ -24,6 +24,7 @@ import com.welol.android.app.permissions.Permission;
 import com.welol.android.external.viewmodel.ProxyViewHelper;
 import com.welol.android.external.viewmodel.ViewModelHelper;
 import com.welol.android.external.viewmodel.ViewModelProvider;
+import com.welol.android.util.AppUtil;
 import com.welol.android.viewmodel.BaseViewModel;
 import com.welol.android.viewmodel.viewinterface.BaseListener;
 import com.welol.android.viewmodel.viewinterface.BaseViewInterface;
@@ -119,10 +120,7 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     try {
       return (DataBinding) mViewModelHelper.getBinding();
     } catch (ClassCastException e) {
-      if (!BuildConfig.DEBUG) {
-        Crashlytics.logException(e);
-      }
-      e.printStackTrace();
+      AppUtil.handleThrowable(e);
       throw new IllegalStateException("Method getViewModelBindingConfig() has to return same "
           + "ViewDataBinding type as it is set to base Fragment");
     }
@@ -241,6 +239,9 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     super.onPause();
     getViewModel().onPause();
     mLifecycleStage = Stage.PAUSED;
+    if (mSnackbar != null && mSnackbar.isShown()) {
+      mSnackbar.dismiss();
+    }
   }
 
   @CallSuper @Override public void onResume() {

@@ -13,6 +13,6 @@
   <string name="dont_smile">לא רוצה לראות כאן חיוך!</string>
   <string name="game_finished">סחטיין %d סרטים בלי לצחוק!</string>
   <string name="lost_face">איפה הפנים שלך?… 🤔</string>
-  <string name="share_text">שרדתי %d סרטונים קורעים ב#LaughChallenge 😎 בלי לצחוק! אין לך סיכוי 😏 https://goo.gl/e85ZWb</string>
+  <string name="share_text">שרדתי %d סרטונים קורעים ב#LaughChallenge 😎! אין לך סיכוי 😏 https://goo.gl/e85ZWb</string>
   <string name="play_again">שחק שוב</string>
 </resources>

@@ -16,4 +16,5 @@
   <string name="game_finished">You survived %d clips. Bravo!</string>
   <string name="lost_face">🤔 where\'s your face…</string>
   <string name="play_again">Play again</string>
+  <string name="smile_detected" translatable="false">😂😂😂😂😂😂</string>
 </resources>

@@ -60,6 +60,7 @@ dependencies {
   compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
   compile "com.android.support:support-v4:$rootProject.supportLibraryVersion"
   compile "com.android.support:design:$rootProject.supportLibraryVersion"
+  compile "com.writingminds:FFmpegAndroid:$rootProject.ffmpegVersion"
   compile("com.android.support.constraint:constraint-layout:$rootProject.constraintLayoutVersion", {
     exclude group: "com.android.support", module: "support-annotations"
   })
