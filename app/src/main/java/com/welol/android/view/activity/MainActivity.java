@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.widget.ImageView;
@@ -85,16 +86,25 @@ public class MainActivity
 
   @Override public void share(int passedLevels) {
     Intent shareIntent = new Intent(Intent.ACTION_SEND);
+    //Target WhatsApp:
+    shareIntent.setPackage("com.whatsapp");
+    //Add text and then Image URI
+    shareIntent.putExtra(Intent.EXTRA_TEXT,
+        getResources().getString(R.string.share_text, passedLevels));
+    startActivity(shareIntent);
     if (mViewerRecording != null) {
-      shareIntent.setType("video/mp4");
+      shareIntent.setType("video/*");
       shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(mViewerRecording)));
     } else {
       shareIntent.setType("text/plain");
-      shareIntent.putExtra(Intent.EXTRA_TEXT,
-          getResources().getString(R.string.share_text, passedLevels));
     }
-    startActivity(Intent.createChooser(shareIntent, "Share using"));
+    try {
+      startActivity(shareIntent);
+    } catch (Exception e) {
+      Snackbar.make(findViewById(android.R.id.content), getString(R.string.share_error),
+          Snackbar.LENGTH_SHORT).show();
+    }
   }
 
   @Override public void hideVideo() {
