@@ -1,21 +1,27 @@
-package com.welol.android.empathy;
+package com.welol.android.camera;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Process;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.util.Size;
 import android.view.Display;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import com.affectiva.android.affdex.sdk.Frame;
-import com.crashlytics.android.Crashlytics;
-import com.welol.android.BuildConfig;
+import com.welol.android.app.App;
+import com.welol.android.util.AppUtil;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,8 +29,8 @@ import java.util.List;
  * coordinating previewing in a way that is optimized for use with FrameDetector.  Preview
  * frames are delivered through the Listener callback interface.
  */
-@SuppressWarnings("deprecation") class CameraHelper {
-  private static final float TARGET_FRAME_RATE = 30;
+@SuppressWarnings("deprecation") public class CameraHelper {
+  public static final int TARGET_FRAME_RATE = 30;
   private final String TAG = this.getClass().getSimpleName();
   private SafeCamera safeCamera;
   private int displayRotation;
@@ -36,18 +42,37 @@ import java.util.List;
   private int previewHeight;
   private OrientationHelper orientationHelper;
   private CameraPreviewer cameraPreviewer;
+  Camera.PreviewCallback mOneShotPreviewCallback = new Camera.PreviewCallback() {
+    @Override public void onPreviewFrame(byte[] data, Camera camera) {
+      if (listener != null) {
+        listener.onFrameAvailable(data, previewWidth, previewHeight, frameRotation);
+      }
+      setupPreviewWithCallbackBuffers();
+    }
+  };
+  private Context mContext;
+  private boolean mRecording = false;
+  private boolean mPaused = false;
+  private int mRecordingFrameIndex = 0;
+  private long mRecordingId = 0;
+  private File mRecordingDir;
+  private long mRecordingDurationMs;
+  private long mRecordingLastStart;
+  private Size mFrameSize;
 
-  CameraHelper(@NonNull Context context, @NonNull Display display, @NonNull Listener listener) {
+  public CameraHelper(@NonNull Context context, @NonNull Display display,
+      @NonNull Listener listener) {
     if (!checkPermission(context)) {
       throw new IllegalStateException("app does not have camera permission");
     }
-
+    mContext = context;
     this.display = display;
     this.listener = listener;
     displayRotation = display.getRotation();
     frameRotation = Frame.ROTATE.NO_ROTATION;
-    orientationHelper = new OrientationHelper(context);
+    orientationHelper = new OrientationHelper(mContext);
     cameraPreviewer = new CameraPreviewer();
+    App.setCameraHelper(this);
   }
 
   private static boolean checkPermission(Context context) {
@@ -55,11 +80,15 @@ import java.util.List;
         == PackageManager.PERMISSION_GRANTED;
   }
 
+  public Size getFrameSize() {
+    return mFrameSize;
+  }
+
   /**
    * Configures the acquired camera for use with the Affdex SDK, and starts previewing.  Preview
    * frames will be delivered to the listener.
    */
-  void start(@NonNull SurfaceTexture texture) {
+  public void start(@NonNull SurfaceTexture texture) {
     Log.d(TAG, "CameraHelper.start()");
     if (safeCamera == null) {
       throw new IllegalStateException("acquire a camera before calling the start method");
@@ -74,10 +103,66 @@ import java.util.List;
     }
   }
 
+  public String startOrResumeRecording() {
+    if (mRecording || mPaused) {
+      if (!mRecording) {
+        Log.d(TAG, "resume recording");
+        mRecordingLastStart = new Date().getTime();
+      }
+      mRecording = true;
+      mPaused = false;
+      return mRecordingDir.getAbsolutePath();
+    }
+    Log.d(TAG, "start recording");
+    // Delete previous recording dir if not currently recording.
+    try {
+      File previousRecordingDir = new File(mContext.getCacheDir(), getRecordingDir());
+      if (previousRecordingDir.isDirectory()) {
+        Log.d(TAG, "deleting previous recording");
+        for (File file : previousRecordingDir.listFiles()) {
+          file.delete();
+        }
+      }
+      previousRecordingDir.delete();
+    } catch (Exception ignored) {
+    }
+    mRecordingLastStart = new Date().getTime();
+    mRecordingDurationMs = 0;
+    mRecording = true;
+    mRecordingFrameIndex = 0;
+    mRecordingId = new Date().getTime();
+    mRecordingDir = new File(mContext.getCacheDir(), getRecordingDir());
+    if (!mRecordingDir.mkdir()) {
+      AppUtil.handleThrowable(new IOException("Could not make recording dir."));
+    }
+    return mRecordingDir.getAbsolutePath();
+  }
+
+  public long stopRecording() {
+    if (mRecording) {
+      // If a "true" stop than increase duration.
+      mRecordingDurationMs += new Date().getTime() - mRecordingLastStart;
+    }
+    Log.d(TAG, "stop recording - " + generateRecordingStats());
+    mRecording = false;
+    mPaused = false;
+    return mRecordingDurationMs;
+  }
+
+  public void pauseRecording() {
+    if (mRecording) {
+      Log.d(TAG, "pause recording - " + generateRecordingStats());
+      // If a "true" pause than increase duration.
+      mRecordingDurationMs += new Date().getTime() - mRecordingLastStart;
+    }
+    mRecording = false;
+    mPaused = true;
+  }
+
   /**
    * Stops and releases the camera.
    */
-  void stop() {
+  public void stop() {
     Log.d(TAG, "CameraHelper.stop()");
     if (isPreviewing) {
       stopPreviewing();
@@ -89,18 +174,32 @@ import java.util.List;
    *
    * @param cameraToOpen one of CameraInfo.
    */
-  void acquire(int cameraToOpen) {
+  public void acquire(int cameraToOpen) {
     safeCamera = new SafeCamera(cameraToOpen);
   }
 
   /**
    * Releases the acquired camera
    */
-  void release() {
+  public void release() {
     if (safeCamera != null) {
       safeCamera.release();
       safeCamera = null;
     }
+  }
+
+  @NonNull private String generateRecordingStats() {
+    return "recorded a total of "
+        + mRecordingFrameIndex
+        + " frames for "
+        + mRecordingDurationMs
+        + "ms, which is "
+        + mRecordingFrameIndex * 1000 / (float) mRecordingDurationMs
+        + " FPS.";
+  }
+
+  @NonNull private String getRecordingDir() {
+    return "recording_" + mRecordingId;
   }
 
   private void setupPreviewWithCallbackBuffers() {
@@ -130,10 +229,8 @@ import java.util.List;
     try {
       safeCamera.setPreviewTexture(texture);
     } catch (IOException e) {
-      if (!BuildConfig.DEBUG) {
-        Crashlytics.logException(e);
-      }
-      Log.i(TAG, "Unable to start camera preview  " + e.getMessage());
+      AppUtil.handleThrowable(e);
+      Log.e(TAG, "Unable to start camera preview  " + e.getMessage());
     }
 
     orientationHelper.enable();
@@ -141,23 +238,14 @@ import java.util.List;
     // setPreviewCallbackWithBuffer only seems to work if you establish it after the first onPreviewFrame callback
     // (otherwise it never gets called back at all). So, use a one-shot callback for the first one, then
     // swap in the callback that uses the buffers.
-    safeCamera.setOneShotPreviewCallback(new Camera.PreviewCallback() {
-      @Override public void onPreviewFrame(byte[] data, Camera camera) {
-        if (listener != null) {
-          listener.onFrameAvailable(data, previewWidth, previewHeight, frameRotation);
-        }
-        setupPreviewWithCallbackBuffers();
-      }
-    });
+    safeCamera.setOneShotPreviewCallback(mOneShotPreviewCallback);
 
     isPreviewing = true;
 
     try {
       safeCamera.startPreview();
     } catch (Exception e) {
-      if (!BuildConfig.DEBUG) {
-        Crashlytics.logException(e);
-      }
+      AppUtil.handleThrowable(e);
       Log.e(TAG, "Failed to start preview!");
       stopPreviewing();
     }
@@ -264,7 +352,7 @@ import java.util.List;
 
   //Sets camera frame to be as close to TARGET_FRAME_RATE as possible
   private void setOptimalPreviewFrameRate(@NonNull Camera.Parameters cameraParams) {
-    int targetHiMS = (int) (1000 * TARGET_FRAME_RATE);
+    int targetHiMS = 1000 * TARGET_FRAME_RATE;
 
     List<int[]> ranges = cameraParams.getSupportedPreviewFpsRange();
     if (ranges == null || ranges.size() <= 1) {
@@ -329,7 +417,7 @@ import java.util.List;
 
   private class OrientationHelper extends OrientationEventListener {
 
-    private OrientationHelper(Context context) {
+    public OrientationHelper(Context context) {
       super(context);
     }
 
@@ -349,6 +437,23 @@ import java.util.List;
     @Override public void onPreviewFrame(@NonNull byte[] data, @NonNull Camera camera) {
       if (listener != null) {
         listener.onFrameAvailable(data, previewWidth, previewHeight, frameRotation);
+      }
+      // Save frame data for video recording.
+      if (mRecording) {
+        try {
+          Camera.Parameters parameters = camera.getParameters();
+          Camera.Size size = parameters.getPreviewSize();
+          mFrameSize = new Size(size.width, size.height);
+          YuvImage image =
+              new YuvImage(data, parameters.getPreviewFormat(), size.width, size.height, null);
+          File file = new File(mRecordingDir, mRecordingFrameIndex + ".jpg");
+          mRecordingFrameIndex++;
+          FileOutputStream fileOutputStream = new FileOutputStream(file);
+          image.compressToJpeg(new Rect(0, 0, image.getWidth(), image.getHeight()), 80,
+              fileOutputStream);
+        } catch (Exception e) {
+          AppUtil.handleThrowable(e);
+        }
       }
       // put the buffer back in the queue, so that it can be used again
       camera.addCallbackBuffer(data);

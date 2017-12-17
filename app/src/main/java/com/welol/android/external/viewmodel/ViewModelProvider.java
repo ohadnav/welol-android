@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
+import com.welol.android.util.AppUtil;
 import com.welol.android.viewmodel.BaseViewModel;
 import com.welol.android.viewmodel.viewinterface.BaseViewInterface;
 import java.util.HashMap;
@@ -60,8 +61,9 @@ public class ViewModelProvider {
 
     try {
       instance = viewModelClass.newInstance();
-    } catch (final Exception ex) {
-      throw new RuntimeException(ex);
+    } catch (final Exception e) {
+      AppUtil.handleThrowable(e);
+      throw new RuntimeException(e);
     }
     instance.setUniqueIdentifier(modelIdentifier);
     mViewModelCache.put(modelIdentifier, instance);

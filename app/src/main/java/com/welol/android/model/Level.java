@@ -2,7 +2,6 @@ package com.welol.android.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.RawRes;
 import android.support.annotation.StringRes;
 import com.welol.android.R;
 
@@ -20,28 +19,28 @@ public class Level implements Parcelable {
       return new Level[size];
     }
   };
-  private String mVideoUrl;
-  @RawRes private Integer mVideoResourceId;
-
-  public Level(String videoUrl) {
-    mVideoUrl = videoUrl;
-  }
+  private Video mVideo;
+  private Result mResult;
 
   public Level(Integer videoResourceId) {
-    mVideoResourceId = videoResourceId;
+    mVideo = new Video(null, null, videoResourceId);
   }
 
   private Level(Parcel in) {
-    mVideoUrl = (String) in.readValue(String.class.getClassLoader());
-    mVideoResourceId = (Integer) in.readValue(Integer.class.getClassLoader());
+    mVideo = (Video) in.readValue(Video.class.getClassLoader());
+    mResult = (Result) in.readValue(Result.class.getClassLoader());
   }
 
-  public Integer getVideoResourceId() {
-    return mVideoResourceId;
+  public Video getVideo() {
+    return mVideo;
   }
 
-  public String getVideoUrl() {
-    return mVideoUrl;
+  public Result getResult() {
+    return mResult;
+  }
+
+  public void setResult(Result result) {
+    mResult = result;
   }
 
   @Override public int describeContents() {
@@ -49,8 +48,24 @@ public class Level implements Parcelable {
   }
 
   @Override public void writeToParcel(Parcel dest, int flags) {
-    dest.writeValue(mVideoUrl);
-    dest.writeValue(mVideoResourceId);
+    dest.writeValue(mVideo);
+    dest.writeValue(mResult);
+  }
+
+  @Override public int hashCode() {
+    int result = mVideo != null ? mVideo.hashCode() : 0;
+    result = 31 * result + (mResult != null ? mResult.hashCode() : 0);
+    return result;
+  }
+
+  @Override public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Level)) return false;
+
+    Level level = (Level) o;
+
+    if (mVideo != null ? !mVideo.equals(level.mVideo) : level.mVideo != null) return false;
+    return mResult == level.mResult;
   }
 
   public enum Result {

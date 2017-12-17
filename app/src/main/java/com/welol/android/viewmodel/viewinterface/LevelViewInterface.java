@@ -16,7 +16,7 @@ public interface LevelViewInterface extends BaseViewInterface {
   /**
    * Replays the level's video.
    */
-  void replay();
+  void skipToStart();
 
   /**
    * Pauses the level, usually due to loading or lost face by the detector.
@@ -24,7 +24,12 @@ public interface LevelViewInterface extends BaseViewInterface {
   void pause();
 
   /**
-   * Finished the level activity.
+   * @return whether the level's video is prepared.
    */
-  void finishLevel(Level.Result result);
+  boolean isPrepared();
+
+  /**
+   * Invoked once a level is finished.
+   */
+  void onLevelFinished(Level.Result result, String viewerRecording, long duration);
 }

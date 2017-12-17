@@ -21,12 +21,14 @@ public class BaseReactionDetectionManager
   private State mState = State.IDLE;
 
   private boolean mHasAttention = false;
+  private boolean paused = true;
 
   @Override public void start(@Nullable Context context) {
     Log.d(TAG, "Starting detection.");
     mState = State.DETECTING;
     mReactionDetectionListeners = new HashSet<>();
     mHasAttention = false;
+    paused = false;
   }
 
   @Override public void subscribe(ReactionDetectionListener reactionDetectionListener) {
@@ -39,8 +41,6 @@ public class BaseReactionDetectionManager
       mReactionDetectionListeners.add(reactionDetectionListener);
       if (mHasAttention) {
         reactionDetectionListener.onAttention();
-      } else {
-        reactionDetectionListener.onAttentionLost();
       }
     } else {
       Log.e(TAG, "Trying to subscribe to an idle manager.");
@@ -75,6 +75,24 @@ public class BaseReactionDetectionManager
 
   @Override public boolean hasAttention() {
     return mHasAttention;
+  }
+
+  @Override public void pause() {
+    if (!paused) {
+      Log.d(TAG, "paused");
+    }
+    paused = true;
+  }
+
+  @Override public void resume() {
+    if (paused) {
+      Log.d(TAG, "resumed");
+    }
+    paused = false;
+  }
+
+  @Override public boolean isPaused() {
+    return paused;
   }
 
   @Override public void onReactionDetected(Emotion reaction) {

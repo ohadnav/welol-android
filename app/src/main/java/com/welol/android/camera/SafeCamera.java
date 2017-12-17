@@ -1,27 +1,27 @@
-package com.welol.android.empathy;
+package com.welol.android.camera;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import com.crashlytics.android.Crashlytics;
-import com.welol.android.BuildConfig;
+import com.welol.android.util.AppUtil;
 import java.io.IOException;
 
 /**
- * A wrapper class to enforce thread-safe access to the camera and its properties.
+ * A wrapper class to enforce thread-safe access to the mCamera and its properties.
  */
-@SuppressWarnings({ "deprecation", "SameParameterValue" }) class SafeCamera {
-  private Camera camera;
+@SuppressWarnings({ "deprecation", "SameParameterValue" }) public class SafeCamera {
+  private String TAG = this.getClass().getSimpleName();
+  private Camera mCamera;
   private volatile int cameraId = -1;
   @SuppressWarnings("unused") private boolean taken;
 
   /**
-   * Attempts to open the specified camera.
+   * Attempts to open the specified mCamera.
    *
    * @param cameraToOpen one of {@link Camera.CameraInfo#CAMERA_FACING_BACK}
    *                     or {@link Camera.CameraInfo#CAMERA_FACING_FRONT}
    *
-   * @throws IllegalStateException if the device does not have a camera of the requested type or
-   *                               the camera is already locked by another process
+   * @throws IllegalStateException if the device does not have a mCamera of the requested type or
+   *                               the mCamera is already locked by another process
    */
   SafeCamera(int cameraToOpen) throws IllegalStateException {
 
@@ -36,71 +36,67 @@ import java.io.IOException;
       }
     }
     if (cameraId == -1) {
-      throw new IllegalStateException("This device does not have a camera of the requested type");
+      throw new IllegalStateException("This device does not have a mCamera of the requested type");
     }
     try {
-      camera = Camera.open(cameraId); // attempt to get a Camera instance.
+      mCamera = Camera.open(cameraId); // attempt to get a Camera instance.
     } catch (RuntimeException e) {
-      if (!BuildConfig.DEBUG) {
-        Crashlytics.logException(e);
-      }
-      // Camera is not available (in use or does not exist). Translate to a more appropriate exception type.
-      String msg =
-          "Camera is unavailable. Please close the app that is using the camera and then try again.\n"
-              + "Error:  "
-              + e.getMessage();
-      throw new IllegalStateException(msg, e);
+      AppUtil.handleThrowable(e);
     }
+  }
+
+  public Camera getCamera() {
+    return mCamera;
   }
 
   synchronized Camera.Parameters getParameters() {
     checkTaken();
-    return camera.getParameters();
+    return mCamera.getParameters();
   }
 
   synchronized void setParameters(Camera.Parameters parameters) {
     checkTaken();
-    camera.setParameters(parameters);
+    mCamera.setParameters(parameters);
   }
 
   synchronized void addCallbackBuffer(byte[] buffer) {
     checkTaken();
-    camera.addCallbackBuffer(buffer);
+    mCamera.addCallbackBuffer(buffer);
   }
 
   synchronized void setPreviewCallbackWithBuffer(Camera.PreviewCallback callback) {
     checkTaken();
-    camera.setPreviewCallbackWithBuffer(callback);
+    mCamera.setPreviewCallbackWithBuffer(callback);
   }
 
   synchronized void setPreviewCallback(Camera.PreviewCallback callback) {
     checkTaken();
-    camera.setPreviewCallback(callback);
+    mCamera.setPreviewCallback(callback);
   }
 
   synchronized void setPreviewTexture(SurfaceTexture texture) throws IOException {
     checkTaken();
-    camera.setPreviewTexture(texture);
+    mCamera.setPreviewTexture(texture);
   }
 
   synchronized void setOneShotPreviewCallback(Camera.PreviewCallback callback) {
     checkTaken();
-    camera.setOneShotPreviewCallback(callback);
+    mCamera.setOneShotPreviewCallback(callback);
   }
 
   synchronized void startPreview() {
     checkTaken();
-    camera.startPreview();
+    mCamera.startPreview();
   }
 
   synchronized void stopPreview() {
     checkTaken();
-    camera.stopPreview();
+    mCamera.stopPreview();
   }
 
   synchronized void setDisplayOrientation(int degrees) {
     checkTaken();
-    camera.setDisplayOrientation(degrees);
+    mCamera.setDisplayOrientation(degrees);
   }
 
   synchronized Camera.CameraInfo getCameraInfo() {
@@ -112,19 +108,18 @@ import java.io.IOException;
 
   synchronized void release() {
     checkTaken();
-
     try {
-      camera.release();
-      camera = null;
+      mCamera.release();
+      mCamera = null;
     } catch (Exception e) {
-      //do nothing, exception thrown because camera was already closed or camera was null (if it failed to open at all)
+      //do nothing, exception thrown because mCamera was already closed or mCamera was null (if it failed to open at all)
     }
   }
 
   private void checkTaken() throws IllegalStateException {
     if (taken) {
       throw new IllegalStateException(
-          "cannot take or interact with camera while it has been taken");
+          "cannot take or interact with mCamera while it has been taken");
     }
   }
 }

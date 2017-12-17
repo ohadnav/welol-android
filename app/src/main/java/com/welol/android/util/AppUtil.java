@@ -9,6 +9,8 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import com.crashlytics.android.Crashlytics;
+import com.welol.android.BuildConfig;
 import javax.annotation.Nullable;
 
 /**
@@ -66,6 +68,13 @@ public class AppUtil {
     Point size = new Point();
     display.getRealSize(size);
     return size;
+  }
+
+  public static void handleThrowable(Throwable throwable) {
+    throwable.printStackTrace();
+    if (!BuildConfig.DEBUG) {
+      Crashlytics.logException(throwable);
+    }
   }
 
   /**

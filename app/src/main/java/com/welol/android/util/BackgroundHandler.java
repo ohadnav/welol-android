@@ -50,7 +50,7 @@ public class BackgroundHandler {
         mThread = null;
         mHandler = null;
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        AppUtil.handleThrowable(e);
       }
     }
   }

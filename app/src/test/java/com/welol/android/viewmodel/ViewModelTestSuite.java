@@ -71,9 +71,5 @@ import org.junit.Before;
     @Override public void removeViewModel() {
 
     }
-
-    @Override public boolean isVisibleAndResumed() {
-      return mIsVisible;
-    }
   }
 }

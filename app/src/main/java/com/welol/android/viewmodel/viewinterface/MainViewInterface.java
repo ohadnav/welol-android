@@ -2,6 +2,7 @@ package com.welol.android.viewmodel.viewinterface;
 
 import com.welol.android.model.Level;
 import com.welol.android.model.LevelsProvider;
+import com.welol.android.model.Video;
 import com.welol.android.view.activity.LevelActivity;
 
 /**
@@ -23,6 +24,16 @@ public interface MainViewInterface extends BaseViewInterface {
 
   /**
    * Share this amazing piece of art app.
+   * @param passedLevels to add to the share message.
    */
-  void share();
+  void share(int passedLevels);
+
+  /**
+   * Hides the viewer recording video.
+   */
+  void hideVideo();
+
+  void showVideo(Video video);
+
+  void generateViewerRecordingOverlay();
 }

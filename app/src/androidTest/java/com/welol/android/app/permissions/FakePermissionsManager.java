@@ -3,6 +3,7 @@ package com.welol.android.app.permissions;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.support.annotation.Nullable;
+import com.welol.android.util.AppUtil;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,7 +71,7 @@ import java.util.Map;
           devicePermissionsManager.requestIfNeeded(activity, permission);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        AppUtil.handleThrowable(e);
       }
     }
     // Invoke permission request callback.

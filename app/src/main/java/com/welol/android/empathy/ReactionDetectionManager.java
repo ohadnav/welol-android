@@ -39,4 +39,10 @@ public interface ReactionDetectionManager {
    * @return whether the user looks at the phone.
    */
   boolean hasAttention();
+
+  void pause();
+
+  void resume();
+
+  boolean isPaused();
 }
