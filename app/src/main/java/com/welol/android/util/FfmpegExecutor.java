@@ -113,7 +113,8 @@ public class FfmpegExecutor {
   private static String[] generateOverlayCommand(Context context, String dirPath, Size videoSize) {
     String filter = "[0] setpts=PTS-STARTPTS, scale="
         + getScaleString(videoSize, MAX_OVERLAY_DIMENSION)
-        + " [video];" + "[video][1] overlay=shortest=1:x=W-w-5:y=H-h-5 [result]";
+        + " [video];"
+        + "[video][1] overlay=shortest=1:x=W-w-5:y=H-h-5 [result]";
     return new String[] {
         "-y", "-i", dirPath + "/" + VIDEO_MP4, "-i", dirPath + "/" + VIEWER_RECORDING_MP4,
         "-filter_complex", filter, "-map", "[result]", "-vcodec", "libx264", "-acodec", "copy",

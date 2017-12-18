@@ -44,9 +44,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (getView() != null) {
       // Request camera permission
       if (App.getPermissionsManager()
-          .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)
-          && App.getPermissionsManager()
-          .requestIfNeeded(getView().getBaseActivity(), Permission.RECORD_AUDIO)) {
+          .requestIfNeeded(getView().getBaseActivity(), Permission.CAMERA)) {
         // Start detection
         App.getReactionDetectionManager().start(getView().getBaseActivity());
       }

@@ -46,7 +46,12 @@ import org.junit.Before;
 
   @SuppressWarnings("unused") class UnitTestViewInterface implements BaseFragmentViewInterface {
     private String mToastText;
-    private boolean mIsVisible = true;
+    private Integer mSnackbarResourceId;
+
+    public Integer getSnackbarResourceId() {
+
+      return mSnackbarResourceId;
+    }
 
     public String getToastText() {
       return mToastText;
@@ -54,6 +59,14 @@ import org.junit.Before;
 
     @Override public void toast(String text) {
       mToastText = text;
+    }
+
+    @Override public void snackbar(int stringResourceId) {
+      mSnackbarResourceId = stringResourceId;
+    }
+
+    @Override public void hideSnackbar() {
+      mSnackbarResourceId = null;
     }
 
     @Override public BaseActivity getBaseActivity() {
