@@ -40,7 +40,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public final ObservableInt mNoLaughImageVisibility = new ObservableInt(View.VISIBLE);
   public final ObservableInt mProgressBarVisibility = new ObservableInt(View.GONE);
   public final ObservableInt mProgressBarProgress = new ObservableInt(0);
-  private boolean mViewerRecordingReady = false;
+  private boolean mViewerRecordingBuilding = false;
   private Timer mTimer;
   private State mState = State.LAUNCH;
   private ArrayList<Level> mLevels;
@@ -113,7 +113,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (mState == State.PLAYING) {
       getView().playLevel(mLevels.get(mCurrentLevel));
     } else if (mState == State.GAME_FINISHED) {
-      if (mViewerRecordingReady) {
+      if (mViewerRecordingBuilding) {
         getView().share(mCurrentLevel);
       } else {
         getView().snackbar(R.string.making_selfie, Snackbar.LENGTH_SHORT);
@@ -137,7 +137,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
       mProgressBarProgress.set(0);
       getView().hideVideo();
       getView().loadAd();
-      mViewerRecordingReady = false;
+      mViewerRecordingBuilding = false;
     }
   }
 
@@ -154,7 +154,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
 
   public void onViewerRecordingReady(Video video) {
     Log.d(TAG, "onViewerRecordingReady at " + video.getUri());
-    mViewerRecordingReady = true;
+    mViewerRecordingBuilding = true;
     if (getView() != null) {
       mProgressBarVisibility.set(View.GONE);
       getView().showVideo(video);
@@ -179,6 +179,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (getView() != null) {
       getView().onViewerRecordingFailed();
       getView().activateShare();
+      mViewerRecordingBuilding = false;
     }
   }
 
