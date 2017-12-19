@@ -59,7 +59,6 @@ public class MainActivity
     Fabric.with(this, new Crashlytics());
     mLevelsProvider = new RandomLevelProvider();
     mViewerRecording = getResultPath(this);
-    share(1);
   }
 
   @Override public void onStart() {
