@@ -36,4 +36,8 @@ public interface MainViewInterface extends BaseViewInterface {
   void showVideo(Video video);
 
   void generateViewerRecordingOverlay();
+
+  void showAd();
+
+  void loadAd();
 }

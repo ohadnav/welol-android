@@ -49,6 +49,7 @@ ext {
   inloopMvvmVersion = '1.3.4'
   affectivaVersion = '3.2'
   ffmpegVersion = '0.3.2'
+  googleAdsVersion = '11.6.2'
 }
 
 apply from: 'versioning.gradle'

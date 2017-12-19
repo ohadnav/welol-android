@@ -10,7 +10,8 @@ import com.welol.android.R;
  */
 
 public class Level implements Parcelable {
-  static final Parcelable.Creator<Level> CREATOR = new Parcelable.Creator<Level>() {
+  @SuppressWarnings("WeakerAccess") public static final Parcelable.Creator<Level> CREATOR =
+      new Parcelable.Creator<Level>() {
     @Override public Level createFromParcel(Parcel source) {
       return new Level(source);
     }
@@ -58,7 +59,7 @@ public class Level implements Parcelable {
     return result;
   }
 
-  @Override public boolean equals(Object o) {
+  @SuppressWarnings("SimplifiableIfStatement") @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Level)) return false;
 

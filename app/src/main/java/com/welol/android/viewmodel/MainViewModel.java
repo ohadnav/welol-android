@@ -13,6 +13,10 @@ import com.welol.android.model.Level;
 import com.welol.android.model.Video;
 import com.welol.android.viewmodel.viewinterface.MainViewInterface;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static com.welol.android.util.CommonUtil.killTimer;
 
 /**
  * Proudly created by ohad on 03/12/2017 for TrueThat.
@@ -23,6 +27,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   private final static String BUNDLE_STATE = "state";
   private final static String BUNDLE_LEVELS = "levels";
   private final static String BUNDLE_CURRENT_LEVEL = "currentLevel";
+  private static final int PLAY_AGAIN_DELAY = 5000;
   public final ObservableInt mTitleTextResourceId = new ObservableInt(R.string.dont_laugh);
   public final ObservableField<String> mSubtitleText = new ObservableField<>();
   public final ObservableInt mTitleTextColor = new ObservableInt(R.color.secondary);
@@ -30,6 +35,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public final ObservableInt mPlayAgainVisibility = new ObservableInt(View.INVISIBLE);
   public final ObservableInt mNoLaughImageVisibility = new ObservableInt(View.VISIBLE);
   public final ObservableInt mLoadingImageVisibility = new ObservableInt(View.GONE);
+  private Timer mTimer;
   private State mState = State.LAUNCH;
   private ArrayList<Level> mLevels;
   private Integer mCurrentLevel;
@@ -49,6 +55,11 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
         App.getReactionDetectionManager().start(getView().getBaseActivity());
       }
     }
+  }
+
+  @Override public void onPause() {
+    super.onPause();
+    killTimer(mTimer);
   }
 
   @Override public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -113,6 +124,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
       mNoLaughImageVisibility.set(View.VISIBLE);
       mLoadingImageVisibility.set(View.GONE);
       getView().hideVideo();
+      getView().loadAd();
     }
   }
 
@@ -127,8 +139,8 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     }
   }
 
-  public void onViewRecordingReady(Video video) {
-    Log.d(TAG, "onViewRecordingReady at " + video.getUri());
+  public void onViewerRecordingReady(Video video) {
+    Log.d(TAG, "onViewerRecordingReady at " + video.getUri());
     if (getView() != null) {
       mLoadingImageVisibility.set(View.GONE);
       getView().showVideo(video);
@@ -138,7 +150,12 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   private void onGameFinished(Level.Result result) {
     Log.d(TAG, "gameFinished");
     mState = State.GAME_FINISHED;
-    mPlayAgainVisibility.set(View.VISIBLE);
+    mTimer = new Timer();
+    mTimer.schedule(new TimerTask() {
+      @Override public void run() {
+        mPlayAgainVisibility.set(View.VISIBLE);
+      }
+    }, PLAY_AGAIN_DELAY);
     mNoLaughImageVisibility.set(View.INVISIBLE);
     mButtonTextResourceId.set(R.string.share);
     if (getView() != null) {
@@ -148,6 +165,7 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
           .getResources()
           .getString(R.string.game_finished, mCurrentLevel));
       getView().generateViewerRecordingOverlay();
+      getView().showAd();
     }
     if (result == Level.Result.WIN) {
       mCurrentLevel++;

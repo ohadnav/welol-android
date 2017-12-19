@@ -15,7 +15,7 @@ import java.io.File;
  */
 
 public class Video implements Parcelable {
-  static final Parcelable.Creator<Video> CREATOR = new Parcelable.Creator<Video>() {
+  public static final Parcelable.Creator<Video> CREATOR = new Parcelable.Creator<Video>() {
     @Override public Video createFromParcel(Parcel source) {
       return new Video(source);
     }
@@ -78,7 +78,7 @@ public class Video implements Parcelable {
     return result;
   }
 
-  @Override public boolean equals(Object o) {
+  @SuppressWarnings("SimplifiableIfStatement") @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Video)) return false;
 

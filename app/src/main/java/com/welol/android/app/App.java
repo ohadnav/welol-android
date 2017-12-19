@@ -1,11 +1,13 @@
 package com.welol.android.app;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+import com.google.android.gms.ads.MobileAds;
 import com.welol.android.BuildConfig;
 import com.welol.android.app.permissions.DevicePermissionsManager;
 import com.welol.android.app.permissions.PermissionsManager;
@@ -20,12 +22,13 @@ import io.fabric.sdk.android.Fabric;
  */
 
 public class App extends Application {
+  public static final String FILE_PROVIDER_AUTHORITY = "com.welol.android";
   private static final String TAG = App.class.getSimpleName();
   public static String sPackageName;
   private static ReactionDetectionManager sReactionDetectionManager;
   private static PermissionsManager sPermissionsManager;
-  private static CameraHelper sCameraHelper;
-  private static FFmpeg sFFmpeg;
+  @SuppressLint("StaticFieldLeak") private static CameraHelper sCameraHelper;
+  @SuppressLint("StaticFieldLeak") private static FFmpeg sFFmpeg;
 
   public static CameraHelper getCameraHelper() {
     if (sCameraHelper == null) {
@@ -72,6 +75,7 @@ public class App extends Application {
       Fabric.with(this, new Crashlytics());
     }
     loadFFMpegBinary();
+    MobileAds.initialize(this, BuildConfig.ADMOB_ID);
   }
 
   private void loadFFMpegBinary() {

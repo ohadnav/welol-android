@@ -2,18 +2,22 @@ package com.welol.android.view.activity;
 
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.widget.ImageView;
 import butterknife.BindView;
 import com.crashlytics.android.Crashlytics;
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.common.base.Strings;
+import com.welol.android.BuildConfig;
 import com.welol.android.R;
 import com.welol.android.databinding.ActivityMainBinding;
 import com.welol.android.model.Level;
@@ -30,6 +34,8 @@ import io.fabric.sdk.android.Fabric;
 import java.io.File;
 import java.util.Date;
 
+import static com.welol.android.app.App.FILE_PROVIDER_AUTHORITY;
+import static com.welol.android.util.FfmpegExecutor.getResultPath;
 import static java.util.regex.Pattern.matches;
 
 public class MainActivity
@@ -42,6 +48,7 @@ public class MainActivity
   private String mViewerRecording;
   private long mOverlayMakeStartTimestamp;
   private Intent mLevelIntent;
+  private InterstitialAd mInterstitialAd;
 
   @Override public ViewModelBindingConfig getViewModelBindingConfig() {
     return new ViewModelBindingConfig(R.layout.activity_main, this);
@@ -51,6 +58,8 @@ public class MainActivity
     super.onCreate(savedInstanceState);
     Fabric.with(this, new Crashlytics());
     mLevelsProvider = new RandomLevelProvider();
+    mViewerRecording = getResultPath(this);
+    share(1);
   }
 
   @Override public void onStart() {
@@ -91,11 +100,11 @@ public class MainActivity
     //Add text and then Image URI
     shareIntent.putExtra(Intent.EXTRA_TEXT,
         getResources().getString(R.string.share_text, passedLevels));
-    startActivity(shareIntent);
     if (mViewerRecording != null) {
       shareIntent.setType("video/*");
       shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-      shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(mViewerRecording)));
+      shareIntent.putExtra(Intent.EXTRA_STREAM,
+          FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, new File(mViewerRecording)));
     } else {
       shareIntent.setType("text/plain");
     }
@@ -147,11 +156,13 @@ public class MainActivity
                       Log.d(TAG, "Overlay made in "
                           + (new Date().getTime() - mOverlayMakeStartTimestamp)
                           + "ms");
-                      mViewerRecording = getFilesDir() + "/" + FfmpegExecutor.RESULT_MP4;
-                      getViewModel().onViewRecordingReady(new Video(null, mViewerRecording, null));
+                      mViewerRecording = getResultPath(MainActivity.this);
+                      getViewModel().onViewerRecordingReady(
+                          new Video(null, mViewerRecording, null));
                     }
 
-                    @Override public void onFinish() {
+                    @SuppressWarnings("ResultOfMethodCallIgnored") @Override
+                    public void onFinish() {
                       super.onFinish();
                       // Delete recording dir
                       File dir = new File(recordingDir);
@@ -163,7 +174,7 @@ public class MainActivity
                   });
             }
 
-            @Override public void onFinish() {
+            @SuppressWarnings("ResultOfMethodCallIgnored") @Override public void onFinish() {
               super.onFinish();
               // Delete frames from cache dir
               File dir = new File(recordingDir);
@@ -175,6 +186,33 @@ public class MainActivity
             }
           });
     }
+  }
+
+  @Override public void showAd() {
+    runOnUiThread(new Runnable() {
+      @Override public void run() {
+        if (mInterstitialAd.isLoaded()) {
+          mInterstitialAd.show();
+        } else {
+          mInterstitialAd.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() {
+              super.onAdLoaded();
+              mInterstitialAd.show();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @Override public void loadAd() {
+    runOnUiThread(new Runnable() {
+      @Override public void run() {
+        mInterstitialAd = new InterstitialAd(MainActivity.this);
+        mInterstitialAd.setAdUnitId(BuildConfig.AD_UNIT_ID);
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+      }
+    });
   }
 
   @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {

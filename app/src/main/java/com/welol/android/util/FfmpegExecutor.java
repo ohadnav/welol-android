@@ -20,12 +20,12 @@ import java.util.Arrays;
  */
 
 public class FfmpegExecutor {
-  public static final String RESULT_MP4 = "result.mp4";
+  private static final String RESULT_MP4 = "result.mp4";
   private static final String VIEWER_RECORDING_MP4 = "viewerRecording.mp4";
   private static final String VIDEO_MP4 = "video.mp4";
   private static final String TAG = FfmpegExecutor.class.getSimpleName();
-  private static final float MAX_OVERLAY_DIMENSION = 240F;
-  private static final float MAX_RECORDING_DIMENSION = 120F;
+  private static final int MAX_OVERLAY_DIMENSION = 240;
+  private static final int MAX_RECORDING_DIMENSION = 120;
 
   private static void execCommand(final String[] command,
       @Nullable final ExecuteBinaryResponseHandler responseHandler) {
@@ -45,6 +45,7 @@ public class FfmpegExecutor {
               @Override public void onFailure(String s) {
                 super.onFailure(s);
                 responseHandler.onFailure(s);
+                AppUtil.handleThrowable(new RuntimeException(s));
               }
 
               @Override public void onStart() {
@@ -94,16 +95,20 @@ public class FfmpegExecutor {
   @Nullable private static String getAbsolutePath(Context context, Uri uri, String dirPath) {
     try {
       InputStream inputStream = context.getContentResolver().openInputStream(uri);
-      File video = new File(dirPath, VIDEO_MP4);
-      int size = inputStream.available();
-      byte[] buffer = new byte[size];
-      inputStream.read(buffer);
-      inputStream.close();
-
-      FileOutputStream outputStream = new FileOutputStream(video);
-      outputStream.write(buffer);
-      outputStream.close();
-      return video.getAbsolutePath();
+      if (inputStream != null) {
+        File video = new File(dirPath, VIDEO_MP4);
+        int size = inputStream.available();
+        byte[] buffer = new byte[size];
+        //noinspection ResultOfMethodCallIgnored
+        inputStream.read(buffer);
+        inputStream.close();
+        FileOutputStream outputStream = new FileOutputStream(video);
+        outputStream.write(buffer);
+        outputStream.close();
+        return video.getAbsolutePath();
+      } else {
+        return null;
+      }
     } catch (Exception e) {
       AppUtil.handleThrowable(e);
       return null;
@@ -117,8 +122,8 @@ public class FfmpegExecutor {
         + "[video][1] overlay=shortest=1:x=W-w-5:y=H-h-5 [result]";
     return new String[] {
         "-y", "-i", dirPath + "/" + VIDEO_MP4, "-i", dirPath + "/" + VIEWER_RECORDING_MP4,
-        "-filter_complex", filter, "-map", "[result]", "-vcodec", "libx264", "-acodec", "copy",
-        "-map", "0:a", "-shortest", new File(context.getFilesDir(), RESULT_MP4).getAbsolutePath()
+        "-filter_complex", filter, "-preset", "ultrafast", "-vcodec", "libx264", "-acodec", "aac",
+        "-map", "0:a", "-map", "[result]", getResultPath(context)
     };
   }
 
@@ -146,9 +151,14 @@ public class FfmpegExecutor {
     }
     return new String[] {
         "-y", "-r", frameRate, "-i", framesDir + "/%d.jpg", "-pix_fmt", "yuv420p", "-vcodec",
-        "libx264", "-r", frameRate, "-vf", "transpose=2", "-s", scale,
+        "libx264", "-r", frameRate, "-preset", "ultrafast", "-vf", "transpose=2", "-s", scale,
         new File(framesDir, VIEWER_RECORDING_MP4).getAbsolutePath()
     };
+  }
+
+  public static String getResultPath(Context context) {
+
+    return new File(context.getFilesDir(), RESULT_MP4).getAbsolutePath();
   }
 
   public static class DefaultExecuteBinaryResponseHandler extends ExecuteBinaryResponseHandler {

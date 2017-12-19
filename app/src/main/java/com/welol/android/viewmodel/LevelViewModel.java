@@ -11,6 +11,8 @@ import com.welol.android.viewmodel.viewinterface.LevelViewInterface;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.welol.android.util.CommonUtil.killTimer;
+
 /**
  * Proudly created by ohad on 04/12/2017 for TrueThat.
  */
@@ -74,7 +76,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
     super.onPause();
     App.getReactionDetectionManager().pause();
     pause();
-    killTimer();
+    killTimer(mAttemtionTimer);
   }
 
   @Override public void onReactionDetected(Emotion reaction) {
@@ -88,7 +90,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
   @Override public void onAttention() {
     if (getView() != null) {
       getView().hideSnackbar();
-      killTimer();
+      killTimer(mAttemtionTimer);
     }
   }
 
@@ -121,12 +123,5 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
         onAttentionLost();
       }
     }, DELAY);
-  }
-
-  private void killTimer() {
-    if (mAttemtionTimer != null) {
-      mAttemtionTimer.cancel();
-      mAttemtionTimer = null;
-    }
   }
 }
