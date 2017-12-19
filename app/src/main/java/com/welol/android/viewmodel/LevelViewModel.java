@@ -1,5 +1,6 @@
 package com.welol.android.viewmodel;
 
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import com.welol.android.R;
 import com.welol.android.app.App;
@@ -83,7 +84,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
     if (reaction == LOSING_REACTION && getView() != null && mResult != Level.Result.LOSE) {
       App.getReactionDetectionManager().pause();
       mResult = Level.Result.LOSE;
-      getView().snackbar(R.string.smile_detected);
+      getView().snackbar(R.string.smile_detected, Snackbar.LENGTH_INDEFINITE);
     }
   }
 
@@ -96,7 +97,7 @@ public class LevelViewModel extends BaseViewModel<LevelViewInterface>
 
   @Override public void onAttentionLost() {
     if (getView() != null) {
-      getView().snackbar(R.string.lost_face);
+      getView().snackbar(R.string.lost_face, Snackbar.LENGTH_INDEFINITE);
     }
   }
 

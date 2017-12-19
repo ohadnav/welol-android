@@ -4,6 +4,7 @@ import android.databinding.ObservableField;
 import android.databinding.ObservableInt;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 import com.welol.android.R;
@@ -15,6 +16,9 @@ import com.welol.android.viewmodel.viewinterface.MainViewInterface;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.welol.android.util.CommonUtil.killTimer;
 
@@ -34,11 +38,14 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
   public final ObservableInt mButtonTextResourceId = new ObservableInt(R.string.lets_go);
   public final ObservableInt mPlayAgainVisibility = new ObservableInt(View.INVISIBLE);
   public final ObservableInt mNoLaughImageVisibility = new ObservableInt(View.VISIBLE);
-  public final ObservableInt mLoadingImageVisibility = new ObservableInt(View.GONE);
+  public final ObservableInt mProgressBarVisibility = new ObservableInt(View.GONE);
+  public final ObservableInt mProgressBarProgress = new ObservableInt(0);
+  private boolean mViewerRecordingReady = false;
   private Timer mTimer;
   private State mState = State.LAUNCH;
   private ArrayList<Level> mLevels;
   private Integer mCurrentLevel;
+  private Pattern mProgressPattern = Pattern.compile("time=([0-9:.]+)");
 
   @Override public void onBindView(@NonNull MainViewInterface view) {
     super.onBindView(view);
@@ -106,7 +113,11 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     if (mState == State.PLAYING) {
       getView().playLevel(mLevels.get(mCurrentLevel));
     } else if (mState == State.GAME_FINISHED) {
-      getView().share(mCurrentLevel);
+      if (mViewerRecordingReady) {
+        getView().share(mCurrentLevel);
+      } else {
+        getView().snackbar(R.string.making_selfie, Snackbar.LENGTH_SHORT);
+      }
     }
   }
 
@@ -122,9 +133,11 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
       mTitleTextResourceId.set(R.string.dont_laugh);
       mPlayAgainVisibility.set(View.INVISIBLE);
       mNoLaughImageVisibility.set(View.VISIBLE);
-      mLoadingImageVisibility.set(View.GONE);
+      mProgressBarVisibility.set(View.GONE);
+      mProgressBarProgress.set(0);
       getView().hideVideo();
       getView().loadAd();
+      mViewerRecordingReady = false;
     }
   }
 
@@ -141,10 +154,47 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
 
   public void onViewerRecordingReady(Video video) {
     Log.d(TAG, "onViewerRecordingReady at " + video.getUri());
+    mViewerRecordingReady = true;
     if (getView() != null) {
-      mLoadingImageVisibility.set(View.GONE);
+      mProgressBarVisibility.set(View.GONE);
       getView().showVideo(video);
+      getView().activateShare();
     }
+  }
+
+  public void onViewerRecordingProgress(String progressDescription, boolean isFramesProgress,
+      long durationMs) {
+    Long currentProgress = descriptionToPercent(progressDescription, durationMs);
+    if (currentProgress != null) {
+      if (isFramesProgress) {
+        mProgressBarProgress.set(currentProgress.intValue() / 5);
+      } else {
+        mProgressBarProgress.set(20 + (4 * currentProgress.intValue() / 5));
+      }
+    }
+  }
+
+  public void onViewerRecordingFailed() {
+    mProgressBarVisibility.set(View.GONE);
+    if (getView() != null) {
+      getView().onViewerRecordingFailed();
+      getView().activateShare();
+    }
+  }
+
+  private Long descriptionToPercent(String description, long durationMs) {
+    Matcher matcher = mProgressPattern.matcher(description);
+    if (matcher.find()) {
+      String separatedTime = matcher.group(1);
+      String[] units = separatedTime.split(":");
+      // Assume seconds only.
+      long currentMs =
+          TimeUnit.MINUTES.toMillis(Long.parseLong(units[1])) + TimeUnit.SECONDS.toMillis(
+              Long.parseLong(units[2].split("\\.")[0])) + TimeUnit.MILLISECONDS.toMillis(
+              Long.parseLong(units[2].split("\\.")[1]) * 10);
+      return 100 * currentMs / durationMs;
+    }
+    return null;
   }
 
   private void onGameFinished(Level.Result result) {
@@ -159,13 +209,14 @@ public class MainViewModel extends BaseViewModel<MainViewInterface> {
     mNoLaughImageVisibility.set(View.INVISIBLE);
     mButtonTextResourceId.set(R.string.share);
     if (getView() != null) {
-      mLoadingImageVisibility.set(View.VISIBLE);
+      mProgressBarVisibility.set(View.VISIBLE);
       getView().showVideo(mLevels.get(mCurrentLevel).getVideo());
       mSubtitleText.set(getView().getBaseActivity()
           .getResources()
           .getString(R.string.game_finished, mCurrentLevel));
       getView().generateViewerRecordingOverlay();
       getView().showAd();
+      getView().inactivateShare();
     }
     if (result == Level.Result.WIN) {
       mCurrentLevel++;

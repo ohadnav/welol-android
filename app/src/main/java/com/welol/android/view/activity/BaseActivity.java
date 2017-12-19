@@ -13,7 +13,6 @@ import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 import butterknife.ButterKnife;
 import com.crashlytics.android.Crashlytics;
@@ -139,13 +138,6 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     super.onCreate(savedInstanceState);
     // Disable landscape orientation.
     setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-    // Hide both the navigation bar and the status bar.
-    getWindow().getDecorView()
-        .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     // Initializes view model
     Class<ViewModel> viewModelClass =
         (Class<ViewModel>) ProxyViewHelper.getGenericType(getClass(), BaseViewModel.class);
@@ -195,12 +187,11 @@ public abstract class BaseActivity<ViewInterface extends BaseViewInterface, View
     Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
   }
 
-  @Override public void snackbar(@StringRes int stringResourceId) {
+  @Override public void snackbar(@StringRes int stringResourceId, int duration) {
     if (mSnackbar != null) {
       mSnackbar.dismiss();
     }
-    mSnackbar = Snackbar.make(findViewById(android.R.id.content), stringResourceId,
-        Snackbar.LENGTH_INDEFINITE);
+    mSnackbar = Snackbar.make(findViewById(android.R.id.content), stringResourceId, duration);
     mSnackbar.show();
   }
 

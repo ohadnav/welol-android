@@ -1,7 +1,7 @@
 package com.welol.android.view.activity;
 
 import android.content.Intent;
-import android.graphics.drawable.AnimationDrawable;
+import android.media.MediaMetadataRetriever;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
@@ -9,7 +9,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
-import android.widget.ImageView;
+import android.widget.ProgressBar;
 import butterknife.BindView;
 import com.crashlytics.android.Crashlytics;
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
@@ -26,6 +26,7 @@ import com.welol.android.model.RandomLevelProvider;
 import com.welol.android.model.Video;
 import com.welol.android.util.FfmpegExecutor;
 import com.welol.android.util.RequestCodes;
+import com.welol.android.view.custom.StyledButton;
 import com.welol.android.view.fragment.VideoFragment;
 import com.welol.android.viewmodel.MainViewModel;
 import com.welol.android.viewmodel.viewinterface.MainViewInterface;
@@ -42,7 +43,8 @@ public class MainActivity
     extends BaseActivity<MainViewInterface, MainViewModel, ActivityMainBinding>
     implements MainViewInterface {
   private static final String BUNDLE_VIEWER_RECORDING = "viewerRecording";
-  @BindView(R.id.loadingImage) ImageView mLoadingImage;
+  @BindView(R.id.progressBar) ProgressBar mProgressBar;
+  @BindView(R.id.button) StyledButton mButton;
   private LevelsProvider mLevelsProvider;
   private VideoFragment mVideoFragment;
   private String mViewerRecording;
@@ -63,8 +65,7 @@ public class MainActivity
 
   @Override public void onStart() {
     super.onStart();
-    ((AnimationDrawable) mLoadingImage.getDrawable()).start();
-    mLoadingImage.bringToFront();
+    mProgressBar.bringToFront();
   }
 
   @Override public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -131,7 +132,7 @@ public class MainActivity
     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
     fragmentTransaction.replace(R.id.mediaLayout, mVideoFragment);
     fragmentTransaction.commit();
-    mLoadingImage.bringToFront();
+    mProgressBar.bringToFront();
   }
 
   @Override public void generateViewerRecordingOverlay() {
@@ -139,6 +140,10 @@ public class MainActivity
     final String recordingDir = mLevelIntent.getStringExtra(LevelActivity.INTENT_RECORDING);
     final long recordingDurationMs =
         mLevelIntent.getLongExtra(LevelActivity.INTENT_DURATION_MS, 6000);
+    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+    retriever.setDataSource(this, level.getVideo().getUri());
+    final long levelDurationMs =
+        Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
     if (!Strings.isNullOrEmpty(recordingDir)) {
       Log.d(TAG, "Starting to create viewer recording.");
       mOverlayMakeStartTimestamp = new Date().getTime();
@@ -170,6 +175,16 @@ public class MainActivity
                       }
                       dir.delete();
                     }
+
+                    @Override public void onProgress(String message) {
+                      super.onProgress(message);
+                      getViewModel().onViewerRecordingProgress(message, false, levelDurationMs);
+                    }
+
+                    @Override public void onFailure(String message) {
+                      super.onFailure(message);
+                      getViewModel().onViewerRecordingFailed();
+                    }
                   });
             }
 
@@ -182,6 +197,16 @@ public class MainActivity
                   file.delete();
                 }
               }
+            }
+
+            @Override public void onProgress(String message) {
+              super.onProgress(message);
+              getViewModel().onViewerRecordingProgress(message, true, recordingDurationMs);
+            }
+
+            @Override public void onFailure(String message) {
+              super.onFailure(message);
+              getViewModel().onViewerRecordingFailed();
             }
           });
     }
@@ -212,6 +237,20 @@ public class MainActivity
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
       }
     });
+  }
+
+  @Override public void onViewerRecordingFailed() {
+    Snackbar.make(findViewById(android.R.id.content), getString(R.string.overlay_error),
+        Snackbar.LENGTH_SHORT).show();
+    mViewerRecording = null;
+  }
+
+  @Override public void inactivateShare() {
+    mButton.setActive(false);
+  }
+
+  @Override public void activateShare() {
+    mButton.setActive(true);
   }
 
   @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -16,4 +16,6 @@
   <string name="share_text">שרדתי %d סרטונים קורעים ב#LaughChallenge 😎! אין לך סיכוי 😏 https://goo.gl/e85ZWb</string>
   <string name="play_again">שחק שוב</string>
   <string name="share_error">שיתוף בווצאפ נכשל 😭</string>
+  <string name="making_selfie"> בונה סרטון סלפי 😎</string>
+  <string name="overlay_error">😭 הכנת סרטון מגניב נכשלה</string>
 </resources>

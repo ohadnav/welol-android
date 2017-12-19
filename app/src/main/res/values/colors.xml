@@ -3,9 +3,9 @@
   <color name="primary">#B388FF</color>
   <color name="secondary">#7C4DFF</color>
   <color name="light">#f8e6f2</color>
-  <color name="error">#ffff4444</color>
-  <color name="success">#dd22aa66</color>
-  <color name="shadow">#ff000000</color>
+  <color name="error">#ff4444</color>
+  <color name="success">#22aa66</color>
+  <color name="shadow">#000000</color>
   <color name="lightShadow">#999</color>
   <color name="tint">#99666666</color>
   <color name="hint">#aaa</color>

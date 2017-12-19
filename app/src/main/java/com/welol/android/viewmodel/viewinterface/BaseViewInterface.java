@@ -20,8 +20,9 @@ public interface BaseViewInterface extends IView {
 
   /**
    * @param stringResourceId to show in {@link Snackbar}
+   * @param duration of the snackbar.
    */
-  void snackbar(@StringRes int stringResourceId);
+  void snackbar(@StringRes int stringResourceId, int duration);
 
   /**
    * Hides the snackbar, if visible.

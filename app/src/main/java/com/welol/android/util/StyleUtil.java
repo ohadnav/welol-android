@@ -39,14 +39,25 @@ public class StyleUtil {
    *
    * @param view to apply.
    */
-  public static void setRoundedCorners(View view) {
+  public static void setGradientBackground(View view) {
+    GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.BL_TR, new int[] {
+        ResourcesCompat.getColor(view.getResources(), R.color.primary, view.getContext().getTheme()),
+        ResourcesCompat.getColor(view.getResources(), R.color.primary, view.getContext().getTheme()),
+        ResourcesCompat.getColor(view.getResources(), R.color.secondary, view.getContext().getTheme())
+    });
+    gradientDrawable.setCornerRadius(Math.min(view.getHeight(), view.getWidth()) / 2f);
+
+    view.setBackground(gradientDrawable);
+  }
+
+  public static void setInactiveBackground(View view) {
     GradientDrawable gradientDrawable =
         new GradientDrawable(GradientDrawable.Orientation.BL_TR, new int[] {
-            ResourcesCompat.getColor(view.getResources(), R.color.primary,
+            ResourcesCompat.getColor(view.getResources(), R.color.lightShadow,
                 view.getContext().getTheme()),
-            ResourcesCompat.getColor(view.getResources(), R.color.primary,
+            ResourcesCompat.getColor(view.getResources(), R.color.lightShadow,
                 view.getContext().getTheme()),
-            ResourcesCompat.getColor(view.getResources(), R.color.secondary,
+            ResourcesCompat.getColor(view.getResources(), R.color.hint,
                 view.getContext().getTheme())
         });
     gradientDrawable.setCornerRadius(Math.min(view.getHeight(), view.getWidth()) / 2f);

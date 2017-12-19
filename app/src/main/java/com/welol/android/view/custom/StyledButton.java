@@ -10,6 +10,8 @@ import com.welol.android.util.StyleUtil;
  */
 
 public class StyledButton extends AppCompatButton {
+  private boolean mActive = true;
+
   public StyledButton(Context context) {
     super(context);
     setTypeface(StyleUtil.getCustomFont(context, null));
@@ -25,8 +27,17 @@ public class StyledButton extends AppCompatButton {
     setTypeface(StyleUtil.getCustomFont(context, attrs));
   }
 
+  public void setActive(boolean active) {
+    mActive = active;
+    requestLayout();
+  }
+
   @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
-    StyleUtil.setRoundedCorners(this);
+    if (mActive) {
+      StyleUtil.setGradientBackground(this);
+    } else {
+      StyleUtil.setInactiveBackground(this);
+    }
   }
 }

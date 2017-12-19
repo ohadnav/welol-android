@@ -131,7 +131,7 @@ public class FfmpegExecutor {
     float scale = (size.getWidth() > size.getHeight()) ? maxDimension / (float) size.getWidth()
         : maxDimension / (float) size.getHeight();
 
-    return Math.round(scale * size.getWidth()) + "x" + Math.round(scale * size.getHeight());
+    return getEven(scale * size.getWidth()) + "x" + getEven(scale * size.getHeight());
   }
 
   private static String[] generateVideoFromFramesCommand(String framesDir, float durationMs) {
@@ -142,10 +142,10 @@ public class FfmpegExecutor {
     int width = App.getCameraHelper().getFrameSize().getHeight();
     int height = App.getCameraHelper().getFrameSize().getWidth();
     if (width > height) {
-      scale = MAX_RECORDING_DIMENSION + "x" + Math.round(
-          height * MAX_RECORDING_DIMENSION / (float) width);
+      scale =
+          MAX_RECORDING_DIMENSION + "x" + getEven(height * MAX_RECORDING_DIMENSION / (float) width);
     } else {
-      scale = Math.round(width * MAX_RECORDING_DIMENSION / (float) height)
+      scale = getEven(width * MAX_RECORDING_DIMENSION / (float) height)
           + "x"
           + MAX_RECORDING_DIMENSION;
     }
@@ -159,6 +159,10 @@ public class FfmpegExecutor {
   public static String getResultPath(Context context) {
 
     return new File(context.getFilesDir(), RESULT_MP4).getAbsolutePath();
+  }
+
+  private static int getEven(float f) {
+    return (Math.round(f) / 2) * 2;
   }
 
   public static class DefaultExecuteBinaryResponseHandler extends ExecuteBinaryResponseHandler {

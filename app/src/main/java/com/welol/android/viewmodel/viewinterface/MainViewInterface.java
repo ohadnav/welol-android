@@ -40,4 +40,10 @@ public interface MainViewInterface extends BaseViewInterface {
   void showAd();
 
   void loadAd();
+
+  void onViewerRecordingFailed();
+
+  void inactivateShare();
+
+  void activateShare();
 }

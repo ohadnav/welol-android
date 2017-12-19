@@ -21,7 +21,6 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
         android:text="@{viewModel.mTitleTextResourceId}"
         android:textColor="@{viewModel.mTitleTextColor}"
         android:textSize="42sp"
@@ -67,19 +66,22 @@
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toBottomOf="parent"
           />
-      <ImageView
-          android:id="@+id/loadingImage"
+
+      <ProgressBar
+          android:id="@+id/progressBar"
           android:layout_width="80dp"
           android:layout_height="80dp"
-          android:contentDescription="@string/image_content_description"
-          android:scaleType="centerInside"
-          android:visibility="@{viewModel.mLoadingImageVisibility}"
+          android:max="100"
+          android:progress="@{viewModel.mProgressBarProgress}"
+          android:progressDrawable="@drawable/circular"
+          android:visibility="@{viewModel.mProgressBarVisibility}"
           app:layout_constraintBottom_toTopOf="parent"
           app:layout_constraintEnd_toEndOf="parent"
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toTopOf="parent"
-          app:srcCompat="@drawable/anim_loading"
+          style="?android:attr/progressBarStyleHorizontal"
           />
+
     </android.support.constraint.ConstraintLayout>
 
 

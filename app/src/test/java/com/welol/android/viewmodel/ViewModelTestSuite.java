@@ -61,7 +61,7 @@ import org.junit.Before;
       mToastText = text;
     }
 
-    @Override public void snackbar(int stringResourceId) {
+    @Override public void snackbar(int stringResourceId, int duration) {
       mSnackbarResourceId = stringResourceId;
     }
 
